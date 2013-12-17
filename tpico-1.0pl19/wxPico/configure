@@ -1,0 +1,40 @@
+#! /bin/sh
+
+echo 'main () {}' > configure.tmp.c
+
+echo "\c" | grep c >/dev/null
+if test $? -eq 0
+then
+  echo_n="-n"
+  echo_c=""
+else
+  echo_n=""
+  echo_c="\c"
+fi
+
+echo $echo_n "Checking for gcc... $echo_c"
+gcc configure.tmp.c 2>/dev/null
+if test $? -eq 0
+then 
+  echo yes
+else
+  echo no
+  echo This package assumes the use of gcc.
+  rm configure.tmp.c
+  exit 1
+fi
+
+echo $echo_n "Checking for wx-config... $echo_c"
+if which wx-config >/dev/null 2>/dev/null
+then 
+  echo yes
+else
+  echo no
+  echo "This package needs wxWindows.  (http://www.wxwindows.org)"
+  rm configure.tmp.c
+  exit 1
+fi
+
+rm -f configure.tmp.c a.out a.exe
+
+exit 0

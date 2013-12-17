@@ -1,0 +1,25 @@
+WxPico is an unfinished and unmaintained project, mostly because nobody
+is interested in actually using it.  Some extra bugs have popped up
+in the OS X version with the newer 2.6 version of wxMac.  It still works
+well enough in Linux.  I have not tried it in MS Windows recently.
+
+MS Windows:
+- closing Editors by clicking the [X] box fails; reason unknown
+    tried lots of dirty hacks, none worked
+- in Windows you must conclude input text for accept() with ctrl-enter
+
+OS X:
+- closing Editors by using the menu item Close leaves a zombie window
+- get rid of the useless empty window
+
+OpenBSD:
+- investigate the error message about free() when closing
+
+General bug:
+- it may happen that the pico engine is still writing to a GUI window
+    when it has been closed
+
+Further development:
+- support Undo better and maybe also Redo
+    (not provided by wxGTK in wxTextCtrl at least up to 2.5.1)
+- put FIND and BALANCE provided in PicoShell to good use

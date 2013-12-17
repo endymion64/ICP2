@@ -1,0 +1,80 @@
+tpico version 1.0: 
+   - an adaptation of tpico version 1.1pl2, the latest interface
+          with an old pico core (there never was a tpico 1.0 before)
+   - made solely for educational purposes (a course of professor
+          D'Hondt is based on this version of the pico core)
+
+tpico version 1.0pl1:
+   - the same bug fix as in tpico version 1.1pl3
+
+tpico version 1.0pl2:
+   - user interface etc. brought up to date from tpico-1.1pl5
+
+tpico version 1.0pl3:
+   - configure script patched not to look for curses if ncurses exists:
+          including both causes conflicts in some gentoo installs
+   - configure script and makefile tweaked to use -falign-functions=2
+          when necessary
+
+tpico version 1.0pl4:
+   - bug fixed that was present but unnoticed since 1.0pl2
+       _PICO_PRINT_ must return a value in pico 1.0, not in pico 1.1...
+
+tpico version 1.0pl5:
+   - reorganisation of the package, now includes a first version of
+          wxPico, a GUI version using wxWindows
+   - took _PICO_KILL_ out of handling of _DO_ESCAPE_, because this wipes
+          all known variables -- but now some junk stays on the stack
+
+tpico version 1.0pl6:
+   - wxPico: whacked a bug in PicoMai.c and started using PicoShell
+          also added Copy/Paste and a font selection dialog
+   - made single-threaded for easier portability (OpenBSD/GTK)
+
+tpico version 1.0pl7:
+   - wxPico starts with fixed pitch fonts now, and it got a braindead
+          Undo function which will have to do for now
+
+tpico version 1.0pl8:
+   - wxPico improvements (ctrl-enter for "run line" etc.) ported from
+          version 2.0pl2
+
+tpico version 1.0pl9:
+   - introduced tpico -s
+
+tpico version 1.0pl10:
+   - introduced tab completion and parenthesis matching
+
+tpico version 1.0pl11:
+   - small fixes to makefiles
+   - fixed possible memory corruption in _env_save_ and _env_load_
+   - reinstated scan_mark condition in _scan_error_
+
+tpico version 1.0pl12:
+   - compiles against the OS/X readline libraries, which do not include
+          _rl_enable_paren_matching()
+   - small fixes to makefiles
+
+tpico version 1.0pl13:
+  - eliminate doubles in identifiergenerator, necessary for OS/X readline
+
+tpico version 1.0pl14:
+  - changed how to recognize GNU readline, necessary since OS/X Leopard
+  - optimize -O3
+
+tpico version 1.0pl15:
+  - gcc -m32 to make pico work for the 64 bit people
+
+tpico version 1.0pl16:
+  - extended effect of -s flag to pico load()
+  - ctrl-c now breaks immediately and completely at accept() in -s mode
+  - fix off-by-one bug in identifiergenerator
+
+tpico version 1.0pl17:
+  - another _env_load_ bug fix, by Joeri de Koster
+
+tpico version 1.0pl18:
+  - a single bug fix by Joeri de Koster
+
+tpico version 1.0pl19:
+  - fixed the configure scripts to abort on pure 64 bit systems

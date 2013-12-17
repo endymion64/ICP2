@@ -1,0 +1,112 @@
+#! /bin/sh
+
+rm -f configure.libs configure.opts
+touch configure.libs configure.opts
+
+echo 'main () { exit (sizeof(long)==4); }' > configure.tmp.c
+
+echo "\c" | grep c >/dev/null
+if test $? -eq 0
+then
+  echo_n="-n"
+  echo_c=""
+else
+  echo_n=""
+  echo_c="\c"
+fi
+
+echo $echo_n "Checking for gcc... $echo_c"
+gcc configure.tmp.c 2>/dev/null
+if test $? -eq 0
+then 
+  echo yes
+else
+  echo no
+  echo This package assumes the use of gcc.
+  rm configure.libs configure.opts configure.tmp.c
+  exit 1
+fi
+
+echo $echo_n "Checking 32 bit system... $echo_c"
+./a.out
+if test $? -eq 1
+then
+  echo yes
+else
+  echo no
+  echo $echo_n "Checking whether gcc recognizes -m32... $echo_c"
+  gcc -m32 configure.tmp.c 2>/dev/null
+  if test $? -eq 0
+  then 
+    echo yes
+    echo -m32 >> configure.opts
+  else
+    echo no
+    echo This package needs a 32 bit environment.
+    rm -f configure.libs configure.opts configure.tmp.c a.out a.exe
+    exit 1
+  fi
+fi
+
+echo $echo_n "Checking for -ltermcap... $echo_c"
+gcc `cat configure.opts` -ltermcap configure.tmp.c 2>/dev/null
+if test $? -eq 0
+then 
+  echo yes
+  echo '-ltermcap' >> configure.libs
+else
+  echo no
+fi
+
+echo $echo_n "Checking for -lncurses... $echo_c"
+gcc `cat configure.opts` -lncurses configure.tmp.c 2>/dev/null
+if test $? -eq 0
+then 
+  echo yes
+  echo '-lncurses' >> configure.libs
+else
+  echo no
+  echo $echo_n "Checking for -lcurses... $echo_c"
+  gcc `cat configure.opts` -lcurses configure.tmp.c 2>/dev/null
+  if test $? -eq 0
+  then 
+    echo yes
+    echo '-lcurses' >> configure.libs
+  else
+    echo no
+  fi
+fi
+
+echo $echo_n "Checking for -lreadline... $echo_c"
+# on my oldest linux box readline needs termcap
+gcc `cat configure.opts` -lreadline `cat configure.libs` configure.tmp.c 2>/dev/null
+if test $? -eq 0
+then 
+  echo yes
+  echo '-lreadline' >> configure.libs
+else
+  echo no
+  echo You have to install the GNU readline library.
+  rm -f configure.libs configure.opts configure.tmp.c a.out a.exe
+  exit 1
+fi
+
+echo $echo_n "Checking for readline headers... $echo_c"
+echo "#include <stdio.h>" > configure.tmp.c
+echo "#include <readline/readline.h>" >> configure.tmp.c
+echo "#include <readline/history.h>" >> configure.tmp.c
+echo "main () {}" >>configure.tmp.c
+gcc `cat configure.opts` -lreadline `cat configure.libs` configure.tmp.c 2>/dev/null
+if test $? -eq 0
+then 
+  echo yes
+else
+  echo no
+  echo The header files readline/readline.h etc. could not be found.
+  rm -f configure.libs configure.opts configure.tmp.c a.out a.exe
+  exit 1
+fi
+
+rm -f configure.tmp.c a.out a.exe
+
+exit 0
