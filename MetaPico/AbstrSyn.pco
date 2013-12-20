@@ -17,6 +17,8 @@
 ` <expression>  ::= <definition>                                 `
 ` <expression>  ::= <assignment>                                 `
 ` <expression>  ::= <void>                                       `
+` <expression>  ::= <multitable>                                 ` Adding multi-tables
+` <expression>  ::= <multitabulation>                            ` Adding tabulation for multi-tables
 `                                                                `
 ` <number>      ::= NBR <number>                                 `
 ` <fraction>    ::= FRC <fraction>                               `
@@ -41,6 +43,9 @@
 ` <invocation>  ::= <variable>                                   `
 ` <invocation>  ::= <application>                                `
 ` <invocation>  ::= <tabulation>                                 `
+`                                                                `
+` <multitable>  ::= MTB <table>                                  ` Adding the definition for multi-tables
+` <multitabulation> ::= MTL <indentifier> <expression>           ` Adding the definition for multi-tabulation
 `------------------------------------------------abstract-syntax-`
 
 

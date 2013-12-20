@@ -87,11 +87,17 @@
           ref: reference();
           APL(Var, ref) };
 
+
+	  `Check if this is a commalist of length one `
+          `Previously: idx: expression(); -- allow commalists for indexation `
+          `Previously: if(token = RBR_token, skip(), message()); -- but the RBR token has already been read, and the next token has been scanned `
+
       tabulation(Var):
         { skip();
-          idx: expression();
-          if(token = RBR_token, skip(), message());
-          TBL(Var, idx) };
+	  idx: list(COM_token, RBR_token);
+	  if(size(idx[TAB_TAB_idx]) = 1,
+             TBL(Var, idx),
+	     MTL(Var, idx))};
 
       variable(Var):
         VAR(Var);

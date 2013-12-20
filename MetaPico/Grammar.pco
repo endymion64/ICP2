@@ -93,6 +93,18 @@
   VOI():
     [ VOI_tag ];
 
+  MTB_tag: 14;
+  MTB(Tab):
+	[ MTB_tag, Tab ];
+  MTB_Tab_idx: 2;
+
+  MTL_tag: 15;
+  MTL(Nam, Tab):
+    [ MTL_tag, Nam, Tab ];
+  MTL_NAM_idx: 2;
+  MTL_Tab_idx: 3;
+
+
   Empty:= TAB([]);
   Eoln := TXT(eoln);
   Void := VOI();
