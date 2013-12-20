@@ -94,11 +94,9 @@
     [ VOI_tag ];
 
   MTB_tag: 14;
-  MTB(Dim, Siz, Tab):
-	[ MTB_tag, Dim, Siz, Tab ];
-  MTB_DIM_idx: 2;
-  MTB_SIZ_idx: 3;
-  MTB_TAB_idx: 4;
+  MTB(Tab):
+	[ MTB_tag, Tab ];
+  MTB_Tab_idx: 2;
 
   MTL_tag: 15;
   MTL(Nam, Tab):

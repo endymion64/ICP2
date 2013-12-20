@@ -114,30 +114,31 @@
              error('table required')) };
 
       eval_multitabulation(Exp):
-        { nam: Exp[MTL_NAM_idx];
-          exp: get(nam, DCT);
-          siz: exp[TAG_SIZ_idx];
-          if(exp[TAG_idx] = MTL_tag,
-             { Siz: Exp[MTL_SIZ_tag];
-               if(or (size(siz) < size(Siz), size(siz) > size(Siz)), 
+	{ nam: Exp[MTL_NAM_idx];
+	  exp: get(nam, DCT);
+	  siz: exp[TAG_SIZ_idx];
+	  if(exp[TAG_idx] = MTL_tag,
+	     { Siz: Exp[MTL_SIZ_tag];
+	       `Evaluate the indexes`
+	       `First check if sizes match. This is an easy user error`
+	       if(or (size(siz) < size(Siz), size(siz) > size(Siz)), 
                   error('invalid index'),
-                  for(i:1, i:=i+1, not(i>size(Siz)),
+	          for(i=0, i<=size(Siz), i := i+1,
                       { val: eval(Siz[i]);
                         if(val[TAG_idx] = NBR_tag,
                            { nbr: val[NBR_VAL_idx];
-                             if(nbr < 0,
-                                error('non-positive index'),
-                                if(nbr > siz[i],
-                                   error('index beyond size'),
-                                   Siz[i] := val)) },
-                           error('invalid size')) }))},
-             error('Multidimensional table requried'));
+		             if(nbr < 0,
+			        error('non-positive index'),
+			        if(nbr > siz[i],
+				   error('index beyond size'),
+		                   Siz[i] := val)) },
+		            error('invalid size')) }))},
+	     error('Multidimensional table requried')) 
 
-          `If we reach this point, this means the index is valid`
-          `so we should find the element`
-          `Don't forget, Siz is the index the user requests, `
-          `not siz! siz is the tab of sizes of the multitable`
-          NBR(42)};
+	  `If we reach this point, this means the index is valid - so we should find the element`
+	  `Return a placeholder for now`
+	  `Don't forget, Siz is the index the user requests, not siz! siz is the tab of sizes of the multitable`
+	  NBR(42)};
 	  
 
       define_variable(Var, Exp):
@@ -171,21 +172,23 @@
              error('invalid size')) }; 
 
       define_multitabulation(Tbl, Exp):
-        { nam: Tbl[MTL_NAM_idx];
-          siz: Tbl[MTL_TAB_idx];
-          dat: 1;
-          for(i:1, i:=i+1, not(i>size(siz)),
+	{ nam: Tbl[MTL_NAM_idx];
+	  siz: Tbl[MTL_TAB_idx];
+	  dat: 1;
+	  `Evaluate the indexes`
+	  for(i=0, i<=size(siz), i := i+1,
               { val: eval(siz[i]);
                 if(val[TAG_idx] = NBR_tag,
                    { nbr: val[NBR_VAL_idx];
-                     if(nbr < 0,
-                        error('negative dimension'),
-                        { siz[i] := val; 
-                          dat := dat * val }) },
-                   error('invalid size aaa')) });
-          tab[dat]: eval(Exp);
-          mtb: MTB(size(siz), siz, tab);
-          DCT:= add(nam, mtb, DCT) };
+		     if(nbr < 0,
+			error('negative dimension'),
+			{ siz[i] := val); 
+                          dat := dat * val } },
+		     error('invalid size')) })
+	  
+	tab[dat]: eval(Exp);
+	mtb: MTB(size(siz), siz, tab);
+        DCT:= add(nam, mtb, DCT) };
    
       define_error(Inv, Exp):
          error('invocation required');
@@ -193,8 +196,8 @@
       define_case: case(VAR_tag => define_variable,
                         APL_tag => define_application,
                         TBL_tag => define_tabulation,
-                        `Add multitabulation definition`
-                        MTL_tag => define_multitabulation,
+			`Add multitabulation definition`
+			MTL_tag => define_multitabulation,
                            else => define_error);
   
       eval_definition(Exp):
@@ -236,30 +239,32 @@
              error('table required')) };
 
       assign_multitabulation(Tbl, Exp):
-        { nam: Tbl[MTL_NAM_idx];
-          exp: get(nam, DCT);
-          siz: exp[TAG_SIZ_idx];
-          if(exp[TAG_idx] = MTL_tag,
-             { Siz: Tbl[MTL_SIZ_tag];
-               if(or (size(siz) < size(Siz), size(siz) > size(Siz)), 
+	{ nam: Tbl[MTL_NAM_idx];
+	  exp: get(nam, DCT);
+	  siz: exp[TAG_SIZ_idx];
+	  if(exp[TAG_idx] = MTL_tag,
+	     { Siz: Tbl[MTL_SIZ_tag];
+	       `Evaluate the indexes`
+	       `First check if sizes match. This is an easy user error`
+	       if(or (size(siz) < size(Siz), size(siz) > size(Siz)), 
                   error('invalid index'),
-                  for(i:1, i:=i+1, not(i>size(Siz)),
+                  `Start evaluating the values`
+	          for(i=0, i<=size(Siz), i := i+1,
                       { val: eval(Siz[i]);
+			`Check if it is a number, then check if it is positive, or beyond the index`
                         if(val[TAG_idx] = NBR_tag,
                            { nbr: val[NBR_VAL_idx];
-                             if(nbr < 0,
-                                error('non-positive index'),
-                                if(nbr > siz[i],
-                                   error('index beyond size'),
-                                   Siz[i] := val)) },
-                            error('invalid size')) }) )},
-              error('Multidimensional table required')); 
+		             if(nbr < 0,
+			        error('non-positive index'),
+			        if(nbr > siz[i],
+				   error('index beyond size'),
+		                   Siz[i] := val)) },
+		            error('invalid size')) }))},
+	     error('Multidimensional table requried')) 
 
-          `If we reach this point, this means the index is valid`
-          `so we should assign the element`
-          `Don't forget to evaluate Exp`
-          dat: Tbl[MTL_TAB_idx];
-          dat[1] := NBR(42)};
+	  `If we reach this point, this means the index is valid - so we should assign the element`
+	  `Don't forget to evaluate Exp, and use Tbl[MTL_SIZ_tag] as the index, which is Siz, not siz!`
+	  NBR(42)};
    
       assign_error(Inv, Exp):
          error('invocation required');
@@ -267,8 +272,8 @@
       assign_case: case(VAR_tag => assign_variable,
                         APL_tag => assign_application,
                         TBL_tag => assign_tabulation,
-                        `Add multitabulation assignment`
-                        MTL_tag => assign_multitabulation,
+			`Add multitabulation assignment`
+			MTL_tag => assign_multitabulation,
                            else => assign_error);
   
       eval_assignment(Exp):
@@ -286,8 +291,8 @@
                       TBL_tag => eval_tabulation,
                       DEF_tag => eval_definition,
                       SET_tag => eval_assignment,
-                      `Add multitabulation evaluation`
-                      MTL_tag => eval_multitabulation,
+		      `Add multitabulation evaluation`
+		      MTL_tag => eval_multitabulation,
                          else => eval_identity);
   
       init_eval(Dct):=
