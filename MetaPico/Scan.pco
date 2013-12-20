@@ -59,7 +59,7 @@
       wsp: 26;
       xop: 27;
 
-      siz: 27; `siz refers to the number of fun's in fun tab
+      siz: 27; `siz refers to the number of fun's in fun tab `
         
       ch_tab: [`end` wsp, wsp, wsp, wsp, wsp, wsp, wsp, 
                 wsp, wsp, wsp, wsp, wsp, eol, wsp, wsp, 
@@ -139,7 +139,6 @@
           for(k: 1, k:= k+1, not(k > size(list)), 
               msk[list[k]]:= true);
           msk };
-      `mask returns a table of 27 booleans`
 
       apo_allowed: mask(apo);
       apx_allowed: mask(apo,eol);
@@ -301,7 +300,6 @@
           skip_ch();
           void };
 
-      `scan returns a token`
       scan():= 
         if(ch = 0,
            END_token,
