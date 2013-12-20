@@ -4,26 +4,26 @@
 `*  VUB Programming Technology Lab   *`
 `*              (c)1997              *`
 `*-----------------------------------*`
-{ AOP_token:  1;
-  CAT_token:  2;
-  CEQ_token:  3;
-  COL_token:  4;
-  COM_token:  5;
-  END_token:  6;
-  FRC_token:  7;
-  LBC_token:  8;
-  LBR_token:  9;
-  LPR_token: 10;
-  MOP_token: 11;
-  NAM_token: 12;
-  NBR_token: 13;
-  RBC_token: 14;
-  RBR_token: 15;
-  ROP_token: 16;
-  RPR_token: 17;
-  SMC_token: 18; 
-  TXT_token: 19;
-  XOP_token: 20;
+{ AOP_token:  1; `additive operator`
+  CAT_token:  2; `commercial ’at’`
+  CEQ_token:  3; `colon equals`
+  COL_token:  4; `colon`
+  COM_token:  5; `comma`
+  END_token:  6; `end token`
+  FRC_token:  7; `fraction`
+  LBC_token:  8; `left brace {`
+  LBR_token:  9; `left bracket [`
+  LPR_token: 10; `left parenthesis (`
+  MOP_token: 11; `multiplicative operator`
+  NAM_token: 12; `name`
+  NBR_token: 13; `number (i.e. integer)`
+  RBC_token: 14; `right brace }`
+  RBR_token: 15; `right bracket ]`
+  ROP_token: 16; `relational operator`
+  RPR_token: 17; `right parenthesis )`
+  SMC_token: 18; `semicolon`
+  TXT_token: 19; `text (i.e. strings)`
+  XOP_token: 20; `exponential operator`
   
   scan_data: void;
   
@@ -32,34 +32,34 @@
         
   init_scan(Str):
     { aop:  1;
-      apo:  2;
-      bkq:  3;
+      apo:  2; `the single quote`
+      bkq:  3; `backquote`
       cat:  4;
       col:  5;
       com:  6;
-      dgt:  7;
+      dgt:  7; `digit`
       eol:  8;
-      eql:  9;
+      eql:  9; `= , treated apart from relational operator due to overloading (assignment)`
       exp: 10;
-      ill: 11; 
+      ill: 11; `illegal`
       lbc: 12;
       lbr: 13;
       lpr: 14;
       ltr: 15;
       mns: 16;
       mop: 17;
-      per: 18;
+      per: 18; `.`
       pls: 19;
       quo: 20;
       rbc: 21;
       rbr: 22;
-      rop: 23;
+      rop: 23; `relational operator`
       rpr: 24;
-      smc: 25;
+      smc: 25; `semicolon`
       wsp: 26;
       xop: 27;
 
-      siz: 27;
+      siz: 27; `siz refers to the number of fun's in fun tab
         
       ch_tab: [`end` wsp, wsp, wsp, wsp, wsp, wsp, wsp, 
                 wsp, wsp, wsp, wsp, wsp, eol, wsp, wsp, 
@@ -139,7 +139,8 @@
           for(k: 1, k:= k+1, not(k > size(list)), 
               msk[list[k]]:= true);
           msk };
-        
+      `mask returns a table of 27 booleans`
+
       apo_allowed: mask(apo);
       apx_allowed: mask(apo,eol);
       bkq_allowed: mask(bkq,eol);
@@ -299,8 +300,9 @@
           pos:= 0;
           skip_ch();
           void };
-              
-      scan():=
+
+      `scan returns a token`
+      scan():= 
         if(ch = 0,
            END_token,
            { fun: fun_tab[ch_tab[ch]];
