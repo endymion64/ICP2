@@ -24,10 +24,10 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include "../Pico/Pico.h"
-#include "../Pico/PicoMai.h"
-#include "../Pico/PicoMem.h"
-#include "../Pico/PicoEnv.h"
+#include "./Pico/Pico.h"
+#include "./Pico/PicoMai.h"
+#include "./Pico/PicoMem.h"
+#include "./Pico/PicoEnv.h"
 
 #define MEMSIZE 10*1024*1024
 
