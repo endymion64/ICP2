@@ -37,8 +37,7 @@
           print_list(tab, '[', ',', ']') };
           
       print_multitable(Exp):
-        { tab: Exp[MTB_TAB_idx];
-          print_list(tab, '[', ',', ']') };
+	    display(Exp);
 
       print_function(Exp):
         { nam: Exp[FUN_NAM_idx];
@@ -73,10 +72,7 @@
           display(']') };
           
       print_multitabulation(Exp):
-        { nam: Exp[MBL_NAM_idx];
-          tab: Exp[MBL_TAB_idx];
-          display(nam);
-          print_list(tab, '[', ',', ']')};
+	    display('Fancy print multitabulation');
             
       print_definition(Exp): 
         { inv: Exp[DEF_INV_idx];

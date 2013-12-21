@@ -122,10 +122,11 @@
       eval_multitabulation(Exp):
         { nam: Exp[MTL_NAM_idx];
           exp: get(nam, DCT);
-          siz: exp[TAG_SIZ_idx];
-          if(exp[TAG_idx] = MTL_tag,
-             { Siz: Exp[MTL_SIZ_tag];
-               if(or (size(siz) < size(Siz), size(siz) > size(Siz)), 
+          `display@['received multitabulation: ', Exp];`
+          if(exp[TAG_idx] = MTB_tag,
+             { Siz: Exp[MTL_TAB_idx];
+               siz: exp[MTB_SIZ_idx];
+               if(not (size(siz) = size(Siz)), 
                   error('invalid index'),
                   for(i:1, i:=i+1, not(i>size(Siz)),
                       { val: eval(Siz[i]);
@@ -135,16 +136,23 @@
                                 error('non-positive index'),
                                 if(nbr > siz[i],
                                    error('index beyond size'),
-                                   Siz[i] := nbr)) },
-                           error('invalid size')) }))},
-             error('Multidimensional table requried'));
-
-          `If we reach this point, this means the index is valid`
-          `so we should find the element`
-          `Don't forget, Siz is the index the user requests, `
-          `not siz! siz is the tab of sizes of the multitable`
-          display@["NEED TO COMPLETE FUNCTION eval_multitabulation"];
-          NBR(42)};
+                                   Siz[i] := nbr))},
+                            error('invalid size for multitabulation')) }) );
+                            
+               `If we reach this point, this means the index is valid`
+               `so we should assign the element`
+               `Don't forget to evaluate Exp when assigning`            
+               ofs: 0;
+               for(i:1, i:=i+1, not(i>exp[MTB_DIM_idx]),
+                   { s: 1;
+                     for(j:i+1, j:=j+1, not(j>exp[MTB_DIM_idx]),
+                         s:= s*siz[j]);
+                     ofs:= ofs+ (s * (Siz[i] - 1)) });
+               ofs := ofs+1;
+               `display@['offset for assignment is: ', ofs]`
+               dat: exp[MTB_TAB_idx];
+               dat[ofs]},
+              error('Multidimensional table required'))};
 	  
 
       define_variable(Var, Exp):
@@ -194,7 +202,7 @@
           tbl[dat]: eval(Exp);
           mtb: MTB(size(siz), siz, tbl);
           DCT:= add(nam, mtb, DCT);
-          display@['Defined multitable: ', mtb];
+          `display@['Defined multitable: ', mtb];`
           mtb};
    
       define_error(Inv, Exp):
@@ -250,10 +258,10 @@
       assign_multitabulation(Tbl, Exp):
         { nam: Tbl[MTL_NAM_idx];
           exp: get(nam, DCT);
-          siz: exp[TAG_SIZ_idx];
-          if(exp[TAG_idx] = MTL_tag,
-             { Siz: Tbl[MTL_SIZ_tag];
-               if(or (size(siz) < size(Siz), size(siz) > size(Siz)), 
+          if(exp[TAG_idx] = MTB_tag,
+             { Siz: Tbl[MTL_TAB_idx];
+               siz: exp[MTB_SIZ_idx];
+               if(not (size(siz) = size(Siz)), 
                   error('invalid index'),
                   for(i:1, i:=i+1, not(i>size(Siz)),
                       { val: eval(Siz[i]);
@@ -263,16 +271,25 @@
                                 error('non-positive index'),
                                 if(nbr > siz[i],
                                    error('index beyond size'),
-                                   Siz[i] := nbr)) },
-                            error('invalid size for multitabulation')) }) )},
-              error('Multidimensional table required')); 
-
-          `If we reach this point, this means the index is valid`
-          `so we should assign the element`
-          `Don't forget to evaluate Exp`
-          display@["NEED TO COMPLETE FUNCTION assign_multitabulation"];
-          dat: Tbl[MTL_TAB_idx];
-          dat[1] := NBR(42)};
+                                   Siz[i] := nbr))},
+                            error('invalid size for multitabulation')) }) );
+                            
+               `If we reach this point, this means the index is valid`
+               `so we should assign the element`
+               `Don't forget to evaluate Exp when assigning`            
+               ofs: 0;
+               for(i:1, i:=i+1, not(i>exp[MTB_DIM_idx]),
+                   { s: 1;
+                     for(j:i+1, j:=j+1, not(j>exp[MTB_DIM_idx]),
+                         s:= s*siz[j]);
+                     
+                     ofs:= ofs+ (s * (Siz[i] - 1)) });
+               ofs := ofs+1;
+               `display@['offset for assignment is: ', ofs]`
+               dat: exp[MTB_TAB_idx];
+               dat[ofs] := eval(Exp)},
+              error('Multidimensional table required'));
+          exp};
    
       assign_error(Inv, Exp):
          error('invocation required');
