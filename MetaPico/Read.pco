@@ -89,15 +89,20 @@
 
 
 	  `Check if this is a commalist of length one `
-          `Previously: idx: expression(); -- allow commalists for indexation `
-          `Previously: if(token = RBR_token, skip(), message()); -- but the RBR token has already been read, and the next token has been scanned `
+      `Previously: idx: expression(); -- allow commalists for indexation `
+      `Previously: if(token = RBR_token, skip(), message()); -- but the RBR token has already been read, and the next token has been scanned `
 
       tabulation(Var):
         { skip();
-	  idx: list(COM_token, RBR_token);
-	  if(size(idx[TAB_TAB_idx]) = 1,
-             TBL(Var, idx),
-	     MTL(Var, idx))};
+          idx: list(COM_token, RBR_token);
+          `list returns a table, so get the table of elements idxs within this table`
+          idx_tab: idx[TAB_TAB_idx];
+          
+          `if our table is a normal TBL (one index), get the first element.`
+          `Because TBL expects the index to be there immediately as NBR, not as a table of NBR's`
+          if(size(idx[TAB_TAB_idx]) = 1,
+             TBL(Var, idx_tab[1]), 
+             MTL(Var, idx_tab))};
 
       variable(Var):
         VAR(Var);

@@ -52,6 +52,9 @@
                    Dct:= cas(arg, par, Dct) }),
              error('Illegal argument count'));
           Dct };
+      
+      call_multitable(TbA, TbP, Dct):
+        display@['NEED TO COMPLETE FUNCTION call_multitable IN Eval.pco'];
 
       call_variable(Tab, Var, Dct):
         { nam: Var[VAR_NAM_idx];
@@ -68,6 +71,8 @@
         error('illegal parameter');
    
       call_case: case(TAB_tag => call_table,
+                      `Add multitabulation support`
+                      MTB_tag => call_multitable,
                       VAR_tag => call_variable,
                          else => call_error);
   
@@ -129,7 +134,7 @@
                                 error('non-positive index'),
                                 if(nbr > siz[i],
                                    error('index beyond size'),
-                                   Siz[i] := val)) },
+                                   Siz[i] := nbr)) },
                            error('invalid size')) }))},
              error('Multidimensional table requried'));
 
@@ -180,12 +185,14 @@
                    { nbr: val[NBR_VAL_idx];
                      if(nbr < 0,
                         error('negative dimension'),
-                        { siz[i] := val; 
-                          dat := dat * val }) },
-                   error('invalid size aaa')) });
-          tab[dat]: eval(Exp);
-          mtb: MTB(size(siz), siz, tab);
-          DCT:= add(nam, mtb, DCT) };
+                        { siz[i] := nbr; 
+                          dat := dat * nbr }) },
+                   error('invalid size')) });
+          tbl[dat]: eval(Exp);
+          mtb: MTB(size(siz), siz, tbl);
+          DCT:= add(nam, mtb, DCT);
+          display@['DEBUG: Multitable: ', mtb];
+          mtb};
    
       define_error(Inv, Exp):
          error('invocation required');
@@ -251,8 +258,8 @@
                                 error('non-positive index'),
                                 if(nbr > siz[i],
                                    error('index beyond size'),
-                                   Siz[i] := val)) },
-                            error('invalid size')) }) )},
+                                   Siz[i] := nbr)) },
+                            error('invalid size for multitabulation')) }) )},
               error('Multidimensional table required')); 
 
           `If we reach this point, this means the index is valid`
