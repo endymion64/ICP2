@@ -82,6 +82,7 @@
           dct: Fun[FUN_DCT_idx];
           tag: par[TAG_idx];
           cas: call_case(tag);
+          `display@['DEBUG eval_call(Fun, Tab): CAS(stuff)'];`
           dct:= cas(Tab, par, dct);
           call_function(exp, dct) };
 
@@ -142,6 +143,7 @@
           `so we should find the element`
           `Don't forget, Siz is the index the user requests, `
           `not siz! siz is the tab of sizes of the multitable`
+          display@["NEED TO COMPLETE FUNCTION eval_multitabulation"];
           NBR(42)};
 	  
 
@@ -188,10 +190,11 @@
                         { siz[i] := nbr; 
                           dat := dat * nbr }) },
                    error('invalid size')) });
+                   
           tbl[dat]: eval(Exp);
           mtb: MTB(size(siz), siz, tbl);
           DCT:= add(nam, mtb, DCT);
-          display@['DEBUG: Multitable: ', mtb];
+          display@['Defined multitable: ', mtb];
           mtb};
    
       define_error(Inv, Exp):
@@ -208,7 +211,9 @@
         { inv: Exp[DEF_INV_idx];
           exp: Exp[DEF_EXP_idx];
           tag: inv[TAG_idx];
+          `display@['DEBUG: define_case(', tag, ')'];`
           cas: define_case(tag);
+          `display@['DEBUG eval_definition: CAS(', inv, ',', exp, ')'];`
           cas(inv, exp) };
 
       assign_variable(Var, Exp):
@@ -265,6 +270,7 @@
           `If we reach this point, this means the index is valid`
           `so we should assign the element`
           `Don't forget to evaluate Exp`
+          display@["NEED TO COMPLETE FUNCTION assign_multitabulation"];
           dat: Tbl[MTL_TAB_idx];
           dat[1] := NBR(42)};
    
@@ -283,6 +289,7 @@
           exp: Exp[SET_EXP_idx];
           tag: inv[TAG_idx];
           cas: assign_case(tag);
+          `display@['DEBUG eval_assignment(Exp): CAS(', inv, ',', Exp, ')'];`
           cas(inv, exp) };
     
       eval_identity(Exp):
@@ -303,7 +310,9 @@
 
       eval(Exp):=
         { tag: Exp[TAG_idx];
+          `display@['DEBUG: EVAL_CASE(', tag, ')'];`
           cas: eval_case(tag);
+          `display@['DEBUG eval(Exp): CAS(', Exp, ')'];`
           cas(Exp) };
   
       void };

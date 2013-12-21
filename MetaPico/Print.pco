@@ -35,6 +35,9 @@
       print_table(Exp):
         { tab: Exp[TAB_TAB_idx];
           print_list(tab, '[', ',', ']') };
+          
+      print_multitable(Exp):
+	    display('fancy print multitable here');
 
       print_function(Exp):
         { nam: Exp[FUN_NAM_idx];
@@ -67,6 +70,9 @@
           display(nam, '[');
           print_expression(idx);
           display(']') };
+          
+      print_multitabulation(Exp):
+	    display('Fancy print multitabulation');
             
       print_definition(Exp): 
         { inv: Exp[DEF_INV_idx];
@@ -89,11 +95,15 @@
                      FRC_tag => print_fraction,
                      TXT_tag => print_text,
                      TAB_tag => print_table,
+                     `Add support for multitables`
+                     MTB_tag => print_multitable,
                      FUN_tag => print_function,
                      NAT_tag => print_native,
                      VAR_tag => print_variable,
                      APL_tag => print_application,
                      TBL_tag => print_tabulation,
+                     `Add support for multitabulation`
+                     MTL_tag => print_multitabulation,
                      DEF_tag => print_definition,
                      SET_tag => print_assignment,
                      DCT_tag => print_dictionary,
