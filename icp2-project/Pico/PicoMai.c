@@ -18,9 +18,11 @@
 /* NAT       -> [Idf] [Nbr]                                               */
 /* CNT       -> [Idf] [Exp] [Exp] [Dct] [Stk]                             */
 /* TAB       -> [Int] [Exp]*                                              */
+/* MTB		 -> [int] [Exp]*                                              */
 /* VAR       -> [Idf]                                                     */
 /* APL       -> [Idf] [Exp]                                               */
 /* TBL       -> [Idf] [Exp]                                               */
+/* MTL	     -> [Idf] [Exp]*                                               */
 /* DEF       -> [Exp] [Exp]                                               */
 /* SET       -> [Exp] [Exp]                                               */
 /* DCT       -> [Idf] [Exp] [Dct]                                         */
@@ -41,9 +43,11 @@
 /* <native function> -> [_NAT_TAG_,IdfSet,NbrSet]                         */
 /* <continuation>    -> [_CNT_TAG_,IdfSet,ArgSet,ExpSet,DctSet,StkSet]    */
 /* <table>           -> [_TAB_TAG_,ExpSet,ExpSet, ...  ,ExpSet]           */
+/* <multitable>      -> [_MTB_TAG_,ExpSet,ExpSet, ...  ,ExpSet]           */
 /* <variable>        -> [_VAR_TAG_,IdfSet]                                */
 /* <application>     -> [_APL_TAG_,IdfSet,ArgSet]                         */
 /* <tabulation>      -> [_TBL_TAG_,IdfSet,ExpSet]                         */
+/* <multitabulation> -> [_MTL_TAG_,IdfSet,ExpSet, ExpSet, ... ,ExpSet]    */
 /* <definition>      -> [_DEF_TAG_,InvSet,ExpSet]                         */
 /* <assignment>      -> [_SET_TAG_,InvSet,ExpSet]                         */
 /* <dictionary>      -> [_DCT_TAG_,IdfSet,ExpSet,DctSet]                  */

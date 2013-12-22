@@ -15,11 +15,11 @@
     WHILE_def: 'while(c(),e()):{l(v,p):p(l(e(),c()),v);l(void,c())}';
     UNTIL_def: 'until(c(),e()):{l(v,p):p(v,l(e(),c()));l(e(),c())}';
     FOR_def:   'for(i,p(),c(),e()):while(c(),{v:e();p();v})';
-    TAB_def:   'tab@t:t';
+    `TAB_def:   'tab@t:t';`
 
     def_tab: [TRUE_def, FALSE_def, AND_def, OR_def, 
               NOT_def, BEGIN_def, IF_def, WHILE_def, 
-              UNTIL_def, FOR_def, TAB_def];
+              UNTIL_def, FOR_def];
 
     reify_NBR(Nbr):
       if(Nbr[TAG_idx]=NBR_tag, 
@@ -230,6 +230,10 @@
               if(tag = TAB_tag, deify_NBR(1),
                  if(tag = MTB_tag, p[MTB_DIM_idx],
                     error('Cannot return dimension for something that is not a table'))) });
+                    
+    tab_fun@Arg:
+      { display(Arg) };
+      
     
     nat_tab: ['+', '-', '*', '/', '//', '\\', '^', 
               '<', '=', '>', 'trunc', 'abs', 'char', 
@@ -238,7 +242,7 @@
               'exp', 'log', 'explode', 'implode', 
               'is_number', 'is_fraction', 'is_text', 
               'is_function', 'is_table', 'is_void', 
-              'size', 'display','accept', 'dimension'];
+              'size', 'display','accept', 'dimension', 'tab'];
 
     fun_tab: [add_fun,
               sub_fun,
@@ -275,7 +279,8 @@
               size_fun,
               display_fun,
               accept_fun,
-              dim_fun];
+              dim_fun,
+              tab_fun];
 
       make_global():=
         {global: make_dict();

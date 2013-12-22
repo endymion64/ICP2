@@ -39,6 +39,9 @@
 /*TABLE                                                                   */
 /*   <tbl> ::= '[' ']'                             => (APL #table# (TAB)) */
 /*   <tbl> ::= '[' <com> ']'                 => (APL #table# (TAB <com>)) */
+/*MULTITABLE                                                              */
+/*   <mtb> ::= '[' ']'                                      TODO          */
+/*   <mtb> ::= '[' <nbr> '[' <com> ']' '[' <com> ']' ']'    TODO          */
 /*BEGIN                                                                   */
 /*   <bgn> ::= '{' <smc> '}'                 => (APL #begin# (TAB <smc>)) */
 /*UNARY                                                                   */
@@ -49,6 +52,8 @@
 /*   <apl> ::= <idf> '@' <ref>                       => (APL <idf> <ref>) */
 /*TABULATION                                                              */
 /*   <tab> ::= <idf> '[' <idx> ']'                   => (TBL <idf> <idx>) */
+/*MULTITABULATION                                                         */
+/*   <MTL> ::= <idf> '[' <com> ']'                          TODO          */
 /*COMMALIST                                                               */
 /*   <com>  ::= <exp>                                            => <exp> */
 /*   <com>  ::= <exp> ',' <com>                            => <exp> <com> */
