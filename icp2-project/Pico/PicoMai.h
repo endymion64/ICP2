@@ -31,6 +31,13 @@
 #define TBL_NAM_INDEX 1
 #define TBL_IDX_INDEX 2
 
+#define MTB_DIM_INDEX 1
+#define MTB_SIZ_INDEX 2
+#define MTB_TAB_INDEX 3
+
+#define MTL_NAM_INDEX 1
+#define MTL_TAB_INDEX 2
+
 #define DEF_INV_INDEX 1
 #define DEF_EXP_INDEX 2
 
@@ -72,6 +79,7 @@
 #define _VAR_SIZE_    1
 #define _APL_SIZE_    2
 #define _TBL_SIZE_    2
+#define _MTL_SIZE_    4
 #define _DEF_SIZE_    2
 #define _SET_SIZE_    2
 #define _DCT_SIZE_    3
@@ -103,7 +111,12 @@
   _mem_fill_raw_(strlen(STR) + 1, _TXT_TAG_, (void *)STR)
 
 #define _ag_make_TAB_(SIZ)\
-  _mem_make_chunk_(SIZ, _TAB_TAG_)                  
+  _mem_make_chunk_(SIZ, _TAB_TAG_)
+
+#define _ag_make_MTB_(DIM, SIZ, TAB)\
+  _mem_make_chunk_(DIM+SIZ+TAB, _MTB_TAG_)
+
+
 
 #define _ag_make_FUN_()\
   _mem_make_chunk_(_FUN_SIZE_, _FUN_TAG_)             
@@ -156,6 +169,15 @@
 
 #define _ag_get_TAB_CNT_(TAB, IDX)\
  _mem_get_cnt_(TAB, IDX)
+
+#define _ag_get_MTB_DIM_(MTB)\
+ _mem_get_exp_(CHK_AGR(MTB, _MTB_TAG_), MTB_DIM_INDEX)
+
+#define _ag_get_MTB_SIZ_(MTB)\
+ _mem_get_exp_(CHK_AGR(MTB, _MTB_TAG_), MTB_SIZ_INDEX)
+
+#define _ag_get_MTB_TAB_(MTB)\
+ _mem_get_exp_(CHK_AGR(MTB, _MTB_TAG_), MTB_TAB_INDEX)
 
 #define _ag_get_NBR_(NBR)\
  _mem_get_nbr_(CHK_AGR(NBR, _NBR_TAG_))
@@ -237,6 +259,24 @@
  
 #define _ag_set_TAB_CNT_(TAB, IDX, CNT)\
  _mem_set_cnt_(TAB, IDX, CNT)
+
+#define _mtb_calc_ofs(SIZ, IDX)\
+
+#define _ag_set_MTB_TAB_(MTB, IDX, EXP)\
+ _UNS_TYPE_ ofs = 0;\
+ for(_UNS_TYPE_ i = 1; i<(_ag_get_MTB_DIM_(MTB) + 1); i++) {\
+	 _UNS_TYPE_ s = 1;\
+	 for(_UNS_TYPE_ j=i+1; j<(_ag_get_MTB_DIM_(MTB) + 1); j++) {\
+		 _NBR_TYPE_ idx = _ag_get_MTB_SIZ_(MTB);\
+		 _UNS_TYPE_ nbr = _ag_get_NBR_(idx);\
+		 s = s*nbr;\
+	 }\
+	 _NBR_TYPE_ idx = _ag_get_TAB_EXP(IDX, i);\
+	 _UNS_TYPE_ nbr = _ag_get_NBR_(idx);\
+	 ofs += s*(nbr - 1);\
+ }\
+ _TAB_TYPE_ dat = _ag_get_MTB_TAB_(MTB);\
+ _mem_set_exp_(dat, ofs, EXP);
 
 #define _ag_set_FUN_NAM_(FUN, NAM)\
  _mem_set_exp_(CHK_AGR(FUN, _FUN_TAG_), FUN_NAM_INDEX, NAM)
@@ -327,10 +367,10 @@ typedef enum { _VOI_TAG_ = 0 ,
                _SET_TAG_ = 10,
                _DCT_TAG_ = 11,
                _ENV_TAG_ = 12,
-               _NY1_TAG_ = 13,
-               _NY2_TAG_ = 14,
+               _MTB_TAG_ = 13,
+               _MTL_TAG_ = 14,
                _NY3_TAG_ = 15,
-               _NBR_TAG_ = 16 } _TAG_TYPE_;
+               _NBR_TAG_ = 16} _TAG_TYPE_;
 
 typedef          char     _BUF_TYPE_[_BUF_SIZE_];
 
