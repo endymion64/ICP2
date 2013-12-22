@@ -207,7 +207,13 @@
          
     size_fun@Arg:
       arg_1(Arg,
-            deify_NBR(size(reify_TAB(p))));
+            { tag: p[TAG_idx];
+              `display@['comparing values: ', tag, ' and ', TAB_tag];`
+              if(tag = TAB_tag,
+                 deify_NBR(size(reify_TAB(p))),
+                 if(tag = MTB_tag,
+                    deify_TAB(p[MTB_SIZ_idx]),
+                    error('Cannot query size for given argument')))});
 
     display_fun@Arg:
       {tab: reify_TAB(Arg);
@@ -217,6 +223,13 @@
     
     accept_fun@Arg:
       arg_0(Arg, deify_TXT(accept()));
+      
+    dim_fun@Arg:
+      arg_1(Arg, 
+            { tag: p[TAG_idx];
+              if(tag = TAB_tag, deify_NBR(1),
+                 if(tag = MTB_tag, p[MTB_DIM_idx],
+                    error('Cannot return dimension for something that is not a table'))) });
     
     nat_tab: ['+', '-', '*', '/', '//', '\\', '^', 
               '<', '=', '>', 'trunc', 'abs', 'char', 
@@ -225,7 +238,7 @@
               'exp', 'log', 'explode', 'implode', 
               'is_number', 'is_fraction', 'is_text', 
               'is_function', 'is_table', 'is_void', 
-              'size', 'display','accept' ];
+              'size', 'display','accept', 'dimension'];
 
     fun_tab: [add_fun,
               sub_fun,
@@ -261,7 +274,8 @@
               type_fun(VOI_tag),
               size_fun,
               display_fun,
-              accept_fun];
+              accept_fun,
+              dim_fun];
 
       make_global():=
         {global: make_dict();
