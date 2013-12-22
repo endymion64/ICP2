@@ -37,8 +37,14 @@
           print_list(tab, '[', ',', ']') };
           
       print_multitable(Exp):
-        { tab: Exp[MTB_TAB_idx];
-          print_list(tab, '[', ',', ']') };
+        { dat: Exp[MTB_TAB_idx];
+          siz_tab: Exp[MTB_SIZ_idx];
+          display('dimension: ');
+          print_number(Exp[MTB_DIM_idx]);
+          display(' | sizes: ');
+          print_list(siz_tab, '[', ',', ']');
+          display(eoln);
+          print_list(dat, '[', ',', ']') };
 
       print_function(Exp):
         { nam: Exp[FUN_NAM_idx];

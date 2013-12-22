@@ -134,9 +134,11 @@
                            { nbr: val[NBR_VAL_idx];
                              if(nbr < 0,
                                 error('non-positive index'),
-                                if(nbr > siz[i],
-                                   error('index beyond size'),
-                                   Siz[i] := nbr))},
+                                { idx: siz[i];
+                                  idx_nbr: idx[NBR_VAL_idx];
+                                  if(nbr > idx_nbr,
+                                     error('index beyond size'),
+                                     Siz[i] := val)})},
                             error('invalid size for multitabulation')) }) );
                             
                `If we reach this point, this means the index is valid`
@@ -146,8 +148,12 @@
                for(i:1, i:=i+1, not(i>exp[MTB_DIM_idx]),
                    { s: 1;
                      for(j:i+1, j:=j+1, not(j>exp[MTB_DIM_idx]),
-                         s:= s*siz[j]);
-                     ofs:= ofs+ (s * (Siz[i] - 1)) });
+                         { idx: siz[j];
+                           idx_nbr: idx[NBR_VAL_idx];
+                           s:= s*idx_nbr});
+                     idx: Siz[i];
+                     idx_nbr: idx[NBR_VAL_idx];
+                     ofs:= ofs+ (s * (idx_nbr - 1)) });
                ofs := ofs+1;
                `display@['offset for assignment is: ', ofs]`
                dat: exp[MTB_TAB_idx];
@@ -195,12 +201,12 @@
                    { nbr: val[NBR_VAL_idx];
                      if(nbr < 0,
                         error('negative dimension'),
-                        { siz[i] := nbr; 
+                        { siz[i] := val; 
                           dat := dat * nbr }) },
                    error('invalid size')) });
                    
           tbl[dat]: eval(Exp);
-          mtb: MTB(size(siz), siz, tbl);
+          mtb: MTB(NBR(size(siz)), siz, tbl);
           DCT:= add(nam, mtb, DCT);
           `display@['Defined multitable: ', mtb];`
           mtb};
@@ -269,9 +275,11 @@
                            { nbr: val[NBR_VAL_idx];
                              if(nbr < 0,
                                 error('non-positive index'),
-                                if(nbr > siz[i],
-                                   error('index beyond size'),
-                                   Siz[i] := nbr))},
+                                { idx: siz[i];
+                                  idx_nbr: idx[NBR_VAL_idx];
+                                  if(nbr > idx_nbr,
+                                     error('index beyond size'),
+                                     Siz[i] := val)})},
                             error('invalid size for multitabulation')) }) );
                             
                `If we reach this point, this means the index is valid`
@@ -281,9 +289,12 @@
                for(i:1, i:=i+1, not(i>exp[MTB_DIM_idx]),
                    { s: 1;
                      for(j:i+1, j:=j+1, not(j>exp[MTB_DIM_idx]),
-                         s:= s*siz[j]);
-                     
-                     ofs:= ofs+ (s * (Siz[i] - 1)) });
+                         { idx: siz[j];
+                           idx_nbr: idx[NBR_VAL_idx];
+                           s:= s*idx_nbr});
+                     idx: Siz[i];
+                     idx_nbr: idx[NBR_VAL_idx];
+                     ofs:= ofs+ (s * (idx_nbr - 1)) });
                ofs := ofs+1;
                `display@['offset for assignment is: ', ofs]`
                dat: exp[MTB_TAB_idx];
