@@ -36,7 +36,7 @@
 #define MTB_TAB_INDEX 3
 
 #define MTL_NAM_INDEX 1
-#define MTL_TAB_INDEX 2
+#define MTL_SIZ_INDEX 2
 
 #define DEF_INV_INDEX 1
 #define DEF_EXP_INDEX 2
@@ -79,7 +79,8 @@
 #define _VAR_SIZE_    1
 #define _APL_SIZE_    2
 #define _TBL_SIZE_    2
-#define _MTL_SIZE_    4
+#define _MTL_SIZE_    2
+#define _MTB_SIZE_    3
 #define _DEF_SIZE_    2
 #define _SET_SIZE_    2
 #define _DCT_SIZE_    3
@@ -113,11 +114,6 @@
 #define _ag_make_TAB_(SIZ)\
   _mem_make_chunk_(SIZ, _TAB_TAG_)
 
-#define _ag_make_MTB_(DIM, SIZ, TAB)\
-  _mem_make_chunk_(DIM+SIZ+TAB, _MTB_TAG_)
-
-
-
 #define _ag_make_FUN_()\
   _mem_make_chunk_(_FUN_SIZE_, _FUN_TAG_)             
 
@@ -131,7 +127,13 @@
   _mem_make_chunk_(_APL_SIZE_, _APL_TAG_)              
 
 #define _ag_make_TBL_()\
-  _mem_make_chunk_(_TBL_SIZE_, _TBL_TAG_)              
+  _mem_make_chunk_(_TBL_SIZE_, _TBL_TAG_)
+
+#define _ag_make_MTL_()\
+  _mem_make_chunk_(_MTL_SIZE_, _MTL_TAG_) // Add support for multitabulation. Has 2 pointers: nam and siz-tab (indexes)
+
+#define _ag_make_MTB_()\
+  _mem_make_chunk_(_MTB_SIZE_, _MTB_TAG_)
    
 #define _ag_make_DEF_()\
   _mem_make_chunk_(_DEF_SIZE_, _DEF_TAG_)             
@@ -211,6 +213,12 @@
 
 #define _ag_get_TBL_IDX_(TBL)\
  _mem_get_exp_(CHK_AGR(TBL, _TBL_TAG_), TBL_IDX_INDEX)
+
+#define _ag_get_MTL_SIZ_(MTL)\
+ _mem_get_exp_(CHK_AGR(MTL, _MTL_TAG_), MTL_SIZ_INDEX)
+
+#define _ag_get_MTL_NAM_(MTL)\
+ _mem_get_exp_(CHK_AGR(MTL, _MTL_TAG_), MTL_NAM_INDEX)
 
 #define _ag_get_DEF_INV_(DEF)\
  _mem_get_exp_(CHK_AGR(DEF, _DEF_TAG_), DEF_INV_INDEX)
@@ -301,6 +309,12 @@
 
 #define _ag_set_TBL_NAM_(TBL, NAM)\
  _mem_set_exp_(CHK_AGR(TBL, _TBL_TAG_), TBL_NAM_INDEX, NAM)
+
+#define _ag_set_MTL_NAM_(MTL, NAM)\
+ _mem_set_exp_(CHK_AGR(MTL, _MTL_TAG_), MTL_NAM_INDEX, NAM)
+
+#define _ag_set_MTL_SIZ_(MTL, SIZ)\
+ _mem_set_exp_(CHK_AGR(MTL, _MTL_TAG_), MTL_SIZ_INDEX, SIZ)
 
 #define _ag_set_TBL_IDX_(TBL, IDX)\
  _mem_set_exp_(CHK_AGR(TBL, _TBL_TAG_), TBL_IDX_INDEX, IDX)
@@ -409,7 +423,7 @@ typedef  union { _HDR_TYPE_ hdr;
                  _UNS_TYPE_ raw; 
                  _NBR_TYPE_ nbr;
                  _NBU_TYPE_ nbu;
-                 _SWI_TYPE_ swi;     } _EXP_TYPE_;
+                 _SWI_TYPE_ swi; } _EXP_TYPE_;
 
 typedef struct { _SES_TYPE_ ses;
                  _RES_TYPE_ res;

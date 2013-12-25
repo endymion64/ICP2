@@ -75,6 +75,7 @@
 /*------------------------------------------------------------------------*/
 
 #include <string.h>
+#include <stdio.h>
 
 #include "Pico.h"
 #include "PicoMai.h"
@@ -83,6 +84,7 @@
 #include "PicoNat.h"
 #include "PicoSca.h"
 #include "PicoRea.h"
+
 
 /* private macros */
 
@@ -112,10 +114,14 @@ static _NIL_TYPE_ RPR(_NIL_TYPE_);
 static _NIL_TYPE_ SET(_NIL_TYPE_);
 static _NIL_TYPE_ SMC(_NIL_TYPE_);
 static _NIL_TYPE_ TBL(_NIL_TYPE_);
+static _NIL_TYPE_ TBl(_NIL_TYPE_);
+static _NIL_TYPE_ MTL(_NIL_TYPE_);
 static _NIL_TYPE_ TRM(_NIL_TYPE_);
 static _NIL_TYPE_ TRm(_NIL_TYPE_);
 static _NIL_TYPE_ UNR(_NIL_TYPE_);
 static _NIL_TYPE_ VAR(_NIL_TYPE_);
+
+static _NIL_TYPE_ MTL(_NIL_TYPE_); // Add support for Multitabulations
 
 /* private variables */
 
@@ -201,7 +207,7 @@ static _NIL_TYPE_ CMp(_NIL_TYPE_)
 /*     cont-stack: [... ... ... ... CNT COM] -> [... ... ... CNT COM EXP] */
 /*                                                                        */
 /*     expr-stack: [NAM EXP ... EXP NBR EXP] -> [... ... ... ... NAM TAB] */
-/*     cont-stack: [... ... ... ... CNT COM] -> [... ... ... ... CNT APL] */
+/*     cont-stack: [... ... ... ... CNT COM] -> [... ... ... ... ... CNT] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ COM(_NIL_TYPE_)
  { _EXP_TYPE_ exp, nbr, tab;
@@ -221,7 +227,7 @@ static _NIL_TYPE_ COM(_NIL_TYPE_)
              _ag_set_TAB_EXP_(tab, ctr, exp); } 
          while (--ctr);
          _stk_push_EXP_(tab);
-         _stk_poke_CNT_(APL);
+         _stk_zap_CNT_();
          break;
        case _COM_TOKEN_:
          READ_TOKEN();
@@ -491,7 +497,8 @@ static _NIL_TYPE_ REF(_NIL_TYPE_)
              _stk_poke_CNT_(APL); }
          else
            { _stk_push_EXP_(_ONE_);
-             _stk_poke_CNT_(COM);
+             _stk_poke_CNT_(APL);
+             _stk_push_CNT_(COM);
              _stk_push_CNT_(EXP); }
          break; 
        case _LBC_TOKEN_:
@@ -515,10 +522,14 @@ static _NIL_TYPE_ REF(_NIL_TYPE_)
                _stk_poke_CNT_(APL);
                _stk_push_CNT_(REF);
                break; 
-             case _LBR_TOKEN_:
+             case _LBR_TOKEN_: // Parse tables
                READ_TOKEN();
+
+               _stk_push_EXP_(_TAB_);
+               _stk_push_EXP_(_ONE_);
+
                _stk_poke_CNT_(TBL);
-               _stk_push_CNT_(IDX);
+               _stk_push_CNT_(COM); // Get comma-list index instead of the continuation 'IDX'
                _stk_push_CNT_(EXP);
                break; 
              default:
@@ -640,13 +651,42 @@ static _NIL_TYPE_ SMC(_NIL_TYPE_)
          break; 
        default:
          _scan_error_(_RBC_ERROR_); }}
-   
+
 /*------------------------------------------------------------------------*/
 /*  TBL                                                                   */
-/*     expr-stack: [... ... ... ... NAM EXP] -> [... ... ... ... ... TBL] */
-/*     cont-stack: [... ... ... ... CNT TBL] -> [... ... ... ... ... CNT] */
+/*     expr-stack: [... ... ... ... NAM TAB] -> [... ... ... ... NAM EXP] */
+/*     cont-stack: [... ... ... ... CNT TBL] -> [... ... ... ... CNT TBL] */
+/*                                                                        */
+/*     expr-stack: [... ... ... ... NAM EXP] -> [... ... ... ... NAM EXP] */
+/*     cont-stack: [... ... ... ... CNT MTL] -> [... ... ... ... CNT MTL] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ TBL(_NIL_TYPE_)
+{ _EXP_TYPE_ tab;
+  _mem_claim_();
+  _stk_claim_();
+  // Get to the index of the tabulation
+  _stk_pop_EXP_(tab);
+  // Determine if exp is a one-number commalist, or a list with multiple numbers
+  _UNS_TYPE_ siz = _ag_get_TAB_SIZ_(tab);
+  if(siz == 1) {
+	  printf("\n%s", "creating regular table\n");
+	      (void)fflush(stdout);
+	  _EXP_TYPE_ idx = _ag_get_TAB_EXP_(tab, 1);
+	  _stk_push_EXP_(idx);
+	  _stk_poke_CNT_(TBl); }
+  else {
+	  printf("\ncreating multidimensional table\n");
+	      (void)fflush(stdout);
+	  _stk_poke_CNT_(MTL);
+  }
+}
+   
+/*------------------------------------------------------------------------*/
+/*  TBl                                                                   */
+/*     expr-stack: [... ... ... ... NAM EXP] -> [... ... ... ... ... TBL] */
+/*     cont-stack: [... ... ... ... CNT TBl] -> [... ... ... ... ... CNT] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ TBl(_NIL_TYPE_)
  { _EXP_TYPE_ idx, nam, tbl;
    _mem_claim_();
    tbl = _ag_make_TBL_();    
@@ -655,8 +695,27 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_)
    _ag_set_TBL_NAM_(tbl, nam);      
    _ag_set_TBL_IDX_(tbl, idx);      
    _stk_poke_EXP_(tbl);
-   _stk_zap_CNT_(); }
+   _stk_zap_CNT_();
+   printf("done creating table\n");
+   	       (void)fflush(stdout);}
 
+/*------------------------------------------------------------------------*/
+/*  TBl                                                                   */
+/*     expr-stack: [... ... ... ... NAM EXP] -> [... ... ... ... ... MTL] */
+/*     cont-stack: [... ... ... ... CNT MTL] -> [... ... ... ... ... CNT] */
+/*------------------------------------------------------------------------*/
+
+static _NIL_TYPE_ MTL(_NIL_TYPE_)
+{ _EXP_TYPE_ siz, nam, mtl;
+  _mem_claim_();
+  mtl = _ag_make_MTL_();
+  _stk_pop_EXP_(siz);
+  _stk_pop_EXP_(nam);
+  _ag_set_MTL_NAM_(mtl, nam);
+  _ag_set_MTL_SIZ_(mtl, siz);
+  _stk_poke_EXP_(mtl);
+  _stk_zap_CNT_();
+}
 /*------------------------------------------------------------------------*/
 /*  TRM                                                                   */
 /*     expr-stack: [... ... ... ... ... ...] -> [... ... ... ... ... ...] */

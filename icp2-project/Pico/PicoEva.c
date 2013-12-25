@@ -7,6 +7,8 @@
 /*            Evaluation             */
 /*-----------------------------------*/
 
+#include <stdio.h>
+
 #include "Pico.h"
 #include "PicoMai.h"
 #include "PicoEnv.h"
@@ -29,14 +31,18 @@ static _NIL_TYPE_ ATV(_NIL_TYPE_);
 static _NIL_TYPE_ BND(_NIL_TYPE_);
 static _NIL_TYPE_ CHG(_NIL_TYPE_);
 static _NIL_TYPE_ DEF(_NIL_TYPE_); 
+static _NIL_TYPE_ EST(_NIL_TYPE_);
 static _NIL_TYPE_ IDX(_NIL_TYPE_); 
 static _NIL_TYPE_ INI(_NIL_TYPE_); 
+static _NIL_TYPE_ MMT(_NIL_TYPE_);
+static _NIL_TYPE_ MTL(_NIL_TYPE_);
 static _NIL_TYPE_ NYI(_NIL_TYPE_); 
 static _NIL_TYPE_ REF(_NIL_TYPE_); 
 static _NIL_TYPE_ RET(_NIL_TYPE_); 
 static _NIL_TYPE_ RPL(_NIL_TYPE_); 
 static _NIL_TYPE_ SET(_NIL_TYPE_); 
 static _NIL_TYPE_ SLF(_NIL_TYPE_); 
+static _NIL_TYPE_ SVT(_NIL_TYPE_);
 static _NIL_TYPE_ SWP(_NIL_TYPE_); 
 static _NIL_TYPE_ TBL(_NIL_TYPE_); 
 static _NIL_TYPE_ VAR(_NIL_TYPE_); 
@@ -57,8 +63,8 @@ static const _BYT_TYPE_ TAB_tab[] =
      1,    /* SET */
      1,    /* DCT */
      1,    /* ENV */
-     0,    /* NYI */
-     0,    /* NYI */
+     1,    /* MTB */
+     1,    /* MTL */
      0,    /* NYI */
      0 };  /* NBR */
      
@@ -77,7 +83,7 @@ static const _CNT_TYPE_ CNT_tab[] =
      SLF,    /* DCT */
      SLF,    /* ENV */
      NYI,    /* NYI */
-     NYI,    /* NYI */
+     MTL,    /* MTL */
      NYI,    /* NYI */
      SLF };  /* NBR */
  
@@ -340,7 +346,7 @@ static _NIL_TYPE_ CHG(_NIL_TYPE_)
 /*     cont-stack: [... ... ... ... ... DEF] -> [... ... ... ... IDX EXP] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ DEF(_NIL_TYPE_)
- { _EXP_TYPE_ arg, dct, def, exp, fun, idx, inv, nam;
+ { _EXP_TYPE_ arg, dct, def, exp, fun, idx, inv, nam, siz;
    _TAG_TYPE_ tag;
    _stk_claim_();
    _mem_claim_();
@@ -349,6 +355,8 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_)
    inv = _ag_get_DEF_INV_(def);
    exp = _ag_get_DEF_EXP_(def);
    tag = _ag_get_TAG_(inv);
+   printf("evaluating definition with tag %u \n", tag);
+   	      (void)fflush(stdout);
    switch (tag)
     { case _VAR_TAG_:
         nam = _ag_get_VAR_NAM_(inv);
@@ -383,6 +391,17 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_)
         _stk_poke_CNT_(IDX);
         _stk_push_CNT_(EXP); 
         break; 
+      case _MTL_TAG_:
+    	nam = _ag_get_MTL_NAM_(inv);
+    	siz = _ag_get_MTL_SIZ_(inv);
+    	_ag_set_DCT_NAM_(dct, nam);
+    	_stk_poke_EXP_(dct);
+    	_stk_push_EXP_(exp);
+    	_stk_push_EXP_(siz);
+    	_stk_push_EXP_(_ONE_);
+    	_stk_push_CNT_(MMT);
+    	_stk_push_CNT_(EST);
+    	break;
       default: 
         _error_(_AGR_ERROR_); }}
    
@@ -395,7 +414,7 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_)
 /*     cont-stack: [... ... ... ... ... IDX] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ IDX(_NIL_TYPE_)
- { _EXP_TYPE_ dct, exp, nbr, tab;
+ { _EXP_TYPE_ dct, exp, nbr, tab, sizs;
    _TAG_TYPE_ tag;
    _UNS_TYPE_ siz;
    _stk_claim_();
@@ -423,6 +442,9 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_)
            _stk_push_CNT_(EXP); }
 	     else
 	       _error_(_SIZ_ERROR_);}
+   else if(tag == _TAB_TAG_) {
+
+   }
    else
      _error_(_SIZ_ERROR_); }
 
@@ -475,7 +497,7 @@ static _NIL_TYPE_ REF(_NIL_TYPE_)
    if (TAB_tab[tag])
      { siz = _ag_get_TAB_SIZ_(tab);
        tag = _ag_get_TAG_(nbr);
-       if (tag == _NBR_TAG_) 
+       if (tag == _NBR_TAG_)
          { ctr = _ag_get_NBU_(nbr);
            if ((ctr > 0) && (ctr <= siz))
              { exp = _ag_get_TAB_EXP_(tab, ctr);
@@ -488,6 +510,124 @@ static _NIL_TYPE_ REF(_NIL_TYPE_)
    else 
      _error_(_NAT_ERROR_); }
 
+/*------------------------------------------------------------------------*/
+/*  REF                                                                   */
+/*     expr-stack: [... ... ... ... TAB TAB] -> [... ... ... ... ... VAL] */
+/*     cont-stack: [... ... ... ... ... MRF] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+/*static _NIL_TYPE_ MRF(_NIL_TYPE_)
+ { _EXP_TYPE_ mtl;
+   _TAG_TYPE_ tag;
+   _stk_pop_EXP_(nbr);
+   _stk_peek_EXP_(tab);
+   tag = _ag_get_TAG_(tab);
+   if (TAB_tab[tag])
+     { siz = _ag_get_TAB_SIZ_(tab);
+       tag = _ag_get_TAG_(nbr);
+       if (tag == _NBR_TAG_)
+         { ctr = _ag_get_NBU_(nbr);
+           if ((ctr > 0) && (ctr <= siz))
+             { exp = _ag_get_TAB_EXP_(tab, ctr);
+               _stk_poke_EXP_(exp);
+               _stk_zap_CNT_(); }
+           else
+             _error_(_RNG_ERROR_); }
+       else
+        _error_(_IIX_ERROR_); }
+   else
+     _error_(_NAT_ERROR_); }*/
+
+/*------------------------------------------------------------------------*/
+/*  MMT  'make multidimensional table'                                    */
+/*     expr-stack: [... ... ... DCT EXP NBR] -> [... DCT TAB EXP *1* EXP] */
+/*     cont-stack: [... ... ... ... ... IDX] -> [... ... ... ... INI EXP] */
+/*                                                                        */
+/*     expr-stack: [... ... ... DCT EXP NBR] -> [... ... ... ... ... *E*] */
+/*     cont-stack: [... ... ... ... ... IDX] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ MMT(_NIL_TYPE_)
+ { _EXP_TYPE_ dct, exp, dim, siz, mtb;
+   _UNS_TYPE_ max_siz;
+   _TAG_TYPE_ tag;
+   _stk_claim_();
+   _stk_pop_EXP_(siz);
+   max_siz = _ag_get_TAB_SIZ_(siz);
+   tag = _ag_get_TAG_(siz);
+   dim = _ag_make_NBU_(max_siz);
+   if (tag == _TAB_TAG_) {
+	   //mem_claim_SIZ_(siz);
+           mtb = _ag_make_MTB_();
+           printf("need to finish making multitable and shit. SUCCESS");
+           	      (void)fflush(stdout);
+         /*  _stk_peek_EXP_(exp);
+           _stk_poke_EXP_(mtb);
+           _stk_push_EXP_(exp);
+           _stk_push_EXP_(_ONE_);
+           _stk_push_EXP_(exp);
+           _stk_poke_CNT_(INI);
+           _stk_push_CNT_(EXP); */}
+   else
+     _error_(_SIZ_ERROR_); }
+
+/*------------------------------------------------------------------------*/
+/*  EST  'evaluate size table'                                            */
+/*     expr-stack: [... ... ... ... TAB *1*] -> [... ... ... ... ... TAB] */
+/*     cont-stack: [... ... ... ... ... EST] -> [... ... ... ... ... ...] */
+/*																	      */
+/*     expr-stack: [... ... ... ... TAB UNS] -> [... ... ... TAB UNS EXP] */
+/*     cont-stack: [... ... ... ... ... EST] -> [... ... ... ... EXP STV] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ EST(_NIL_TYPE_)
+ { _EXP_TYPE_ siz_tab, uns;
+   _UNS_TYPE_ ctr, siz_amt;
+   _TAG_TYPE_ tag;
+
+   _stk_pop_EXP_(uns);
+   _stk_peek_EXP_(siz_tab);
+   ctr = _ag_get_NBU_(uns);
+   siz_amt = _ag_get_TAB_SIZ_(siz_tab);
+
+   tag = _ag_get_TAG_(siz_tab);
+
+	   printf("evaluating index %u in the sizes table for tag %u \n", ctr, tag);
+   	       (void)fflush(stdout);
+
+	if (tag == _TAB_TAG_) {
+		if(ctr <= siz_amt) {
+				_stk_push_EXP_(_ag_succ_NBR_(uns));
+				_stk_push_EXP_(_ag_get_TAB_EXP_(siz_tab, ctr));
+				_stk_push_CNT_(EST);
+				_stk_push_CNT_(SVT);
+				_stk_push_CNT_(EXP);
+		}
+		else {
+			printf("done evaluating indices. Last one was %u \n", ctr);
+			   	       (void)fflush(stdout);
+			_stk_zap_EXP_();
+			_stk_zap_CNT_();
+		}
+	}
+	else
+		_error_(_NAT_ERROR_);
+ }
+
+/*------------------------------------------------------------------------*/
+/*  STV  'store value in table'                                           */
+/*     expr-stack: [... ... ... TAB NBU EXP] -> [... ... ... ... TAB NBU] */
+/*     cont-stack: [... ... ... ... ... SVT] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ SVT(_NIL_TYPE_) {
+	_EXP_TYPE_ exp, tab, uns;
+	_UNS_TYPE_ idx;
+	_mem_claim_();
+	_stk_pop_EXP_(exp);
+	_stk_pop_EXP_(uns);
+	_stk_peek_EXP_(tab);
+	idx = _ag_get_NBU_(uns);
+	_ag_set_TAB_EXP_(tab, idx, exp);
+	_stk_push_EXP_(_ag_succ_NBR_(uns));
+	_stk_zap_CNT_();
+}
 /*------------------------------------------------------------------------*/
 /*  RET                                                                   */
 /*     expr-stack: [... ... ... ... DCT VAL] -> [... ... ... ... ... VAL] */
@@ -649,7 +789,22 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_)
    _stk_poke_EXP_(tab);
    _stk_push_EXP_(idx);
    _stk_poke_CNT_(REF);
-   _stk_push_CNT_(EXP); }
+   _stk_push_CNT_(EXP);
+ }
+
+static _NIL_TYPE_ MTL(_NIL_TYPE_)
+{ _EXP_TYPE_ dct, siz, nam, mtb, mtl;
+  _stk_claim_();
+  _stk_peek_EXP_(mtl);
+  nam = _ag_get_MTL_NAM_(mtl);
+  siz = _ag_get_MTL_SIZ_(mtl);
+  _dct_locate_(nam, dct, _DCT_);
+  mtb = _ag_get_DCT_VAL_(dct);
+  _stk_poke_EXP_(mtb);
+  _stk_push_EXP_(siz);
+  _stk_poke_CNT_(REF);
+  _stk_push_CNT_(EXP); // TODO
+}
 
 /*------------------------------------------------------------------------*/
 /*  VAR                                                                   */
