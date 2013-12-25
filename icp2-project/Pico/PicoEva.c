@@ -550,22 +550,41 @@ static _NIL_TYPE_ MMT(_NIL_TYPE_)
    _UNS_TYPE_ max_siz;
    _TAG_TYPE_ tag;
    _stk_claim_();
+   _mem_claim_();
+
    _stk_pop_EXP_(siz);
    max_siz = _ag_get_TAB_SIZ_(siz);
    tag = _ag_get_TAG_(siz);
    dim = _ag_make_NBU_(max_siz);
+
+   printf("attempting to create a multidimensional table of dimension %u\n", max_siz);
+   printf("siz tab has following sizes: [");
+   	  _UNS_TYPE_ i;
+   	  for(i=1; i<=max_siz; i++) {
+   		  _EXP_TYPE_ nbr = _ag_get_TAB_EXP_(siz, i);
+   		  if(_ag_get_TAG_(nbr) == _NBR_TAG_)
+   			  printf("%u ", _ag_get_NBU_(nbr));
+   		  else
+   			  printf("-%u- ", _ag_get_TAG_(nbr));
+   	  }
+   	  printf("]\n");
+   	  (void)fflush(stdout);
+
    if (tag == _TAB_TAG_) {
-	   //mem_claim_SIZ_(siz);
-           mtb = _ag_make_MTB_();
-           printf("need to finish making multitable and shit. SUCCESS");
-           	      (void)fflush(stdout);
+	   mtb = _ag_make_MTB_();
+       printf("need to finish making multitable and shit. SUCCESS\n");
+       (void)fflush(stdout);
+
+       _stk_zap_CNT_();
          /*  _stk_peek_EXP_(exp);
            _stk_poke_EXP_(mtb);
            _stk_push_EXP_(exp);
            _stk_push_EXP_(_ONE_);
            _stk_push_EXP_(exp);
            _stk_poke_CNT_(INI);
-           _stk_push_CNT_(EXP); */}
+           _stk_push_CNT_(EXP); */
+
+   }
    else
      _error_(_SIZ_ERROR_); }
 
@@ -578,32 +597,32 @@ static _NIL_TYPE_ MMT(_NIL_TYPE_)
 /*     cont-stack: [... ... ... ... ... EST] -> [... ... ... ... EXP STV] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ EST(_NIL_TYPE_)
- { _EXP_TYPE_ siz_tab, uns;
+ { _EXP_TYPE_ siz_tab, nbr;
    _UNS_TYPE_ ctr, siz_amt;
    _TAG_TYPE_ tag;
 
-   _stk_pop_EXP_(uns);
+   _stk_pop_EXP_(nbr);
    _stk_peek_EXP_(siz_tab);
-   ctr = _ag_get_NBU_(uns);
+
+   ctr = _ag_get_NBU_(nbr);
    siz_amt = _ag_get_TAB_SIZ_(siz_tab);
 
    tag = _ag_get_TAG_(siz_tab);
 
-	   printf("evaluating index %u in the sizes table for tag %u \n", ctr, tag);
-   	       (void)fflush(stdout);
-
 	if (tag == _TAB_TAG_) {
 		if(ctr <= siz_amt) {
-				_stk_push_EXP_(_ag_succ_NBR_(uns));
-				_stk_push_EXP_(_ag_get_TAB_EXP_(siz_tab, ctr));
-				_stk_push_CNT_(EST);
-				_stk_push_CNT_(SVT);
-				_stk_push_CNT_(EXP);
+			printf("evaluating index %u in the sizes table\n", ctr);
+			(void)fflush(stdout);
+
+			_stk_push_EXP_(nbr);
+			_stk_push_EXP_(_ag_get_TAB_EXP_(siz_tab, ctr));
+			_stk_poke_CNT_(EST);
+			_stk_push_CNT_(SVT);
+			_stk_push_CNT_(EXP);
 		}
 		else {
-			printf("done evaluating indices. Last one was %u \n", ctr);
-			   	       (void)fflush(stdout);
-			_stk_zap_EXP_();
+			printf("done evaluating indices.\n");
+			(void)fflush(stdout);
 			_stk_zap_CNT_();
 		}
 	}
@@ -620,6 +639,7 @@ static _NIL_TYPE_ SVT(_NIL_TYPE_) {
 	_EXP_TYPE_ exp, tab, uns;
 	_UNS_TYPE_ idx;
 	_mem_claim_();
+	_stk_claim_();
 	_stk_pop_EXP_(exp);
 	_stk_pop_EXP_(uns);
 	_stk_peek_EXP_(tab);

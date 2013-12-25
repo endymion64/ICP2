@@ -453,7 +453,6 @@ static _NIL_TYPE_ EVU(_NIL_TYPE_);
 static _NIL_TYPE_ PRU(_NIL_TYPE_);
 static _NIL_TYPE_ TAU(_NIL_TYPE_);
 static _NIL_TYPE_ MKU(_NIL_TYPE_);
-static _NIL_TYPE_ SWU(_NIL_TYPE_);
 static _NIL_TYPE_ ERU(_NIL_TYPE_);
 
 /* private variables */

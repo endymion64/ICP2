@@ -104,7 +104,7 @@ static _NIL_TYPE_ EXp(_NIL_TYPE_);
 static _NIL_TYPE_ EXT(_NIL_TYPE_);
 static _NIL_TYPE_ FCT(_NIL_TYPE_);
 static _NIL_TYPE_ FCt(_NIL_TYPE_);
-static _NIL_TYPE_ IDX(_NIL_TYPE_);
+//static _NIL_TYPE_ IDX(_NIL_TYPE_); // deprecated
 static _NIL_TYPE_ INV(_NIL_TYPE_);
 static _NIL_TYPE_ INv(_NIL_TYPE_);
 static _NIL_TYPE_ NRY(_NIL_TYPE_);
@@ -339,16 +339,16 @@ static _NIL_TYPE_ FCt(_NIL_TYPE_)
      _stk_zap_CNT_(); }
  
 /*------------------------------------------------------------------------*/
-/*  IDX                                                                   */
+/*  IDX -- Old continuation used in combination with tabulations          */
 /*     expr-stack: [... ... ... ... NAM EXP] -> [... ... ... ... NAM EXP] */
 /*     cont-stack: [... ... ... ... CNT IDX] -> [... ... ... ... ... CNT] */
 /*------------------------------------------------------------------------*/
-static _NIL_TYPE_ IDX(_NIL_TYPE_)
+/*static _NIL_TYPE_ IDX(_NIL_TYPE_)
  { if (current_token == _RBR_TOKEN_)
      { READ_TOKEN();
        _stk_zap_CNT_(); }
    else
-     _scan_error_(_RBR_ERROR_); }
+     _scan_error_(_RBR_ERROR_); }*/
  
 /*------------------------------------------------------------------------*/
 /*  INV                                                                   */
