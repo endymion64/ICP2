@@ -24,6 +24,7 @@
 
 /* private prototypes */
 
+static _NIL_TYPE_ AMT(_NIL_TYPE_);
 static _NIL_TYPE_ APL(_NIL_TYPE_);  
 static _NIL_TYPE_ ASS(_NIL_TYPE_); 
 static _NIL_TYPE_ ATA(_NIL_TYPE_); 
@@ -36,12 +37,15 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_);
 static _NIL_TYPE_ INI(_NIL_TYPE_); 
 static _NIL_TYPE_ MMT(_NIL_TYPE_);
 static _NIL_TYPE_ MTL(_NIL_TYPE_);
+static _NIL_TYPE_ MRF(_NIL_TYPE_);
 static _NIL_TYPE_ NYI(_NIL_TYPE_); 
 static _NIL_TYPE_ REF(_NIL_TYPE_); 
-static _NIL_TYPE_ RET(_NIL_TYPE_); 
+static _NIL_TYPE_ RET(_NIL_TYPE_);
+static _NIL_TYPE_ RMD(_NIL_TYPE_);
 static _NIL_TYPE_ RPL(_NIL_TYPE_); 
 static _NIL_TYPE_ SET(_NIL_TYPE_); 
 static _NIL_TYPE_ SLF(_NIL_TYPE_); 
+static _NIL_TYPE_ SMT(_NIL_TYPE_);
 static _NIL_TYPE_ SVT(_NIL_TYPE_);
 static _NIL_TYPE_ SWP(_NIL_TYPE_); 
 static _NIL_TYPE_ TBL(_NIL_TYPE_); 
@@ -88,6 +92,49 @@ static const _CNT_TYPE_ CNT_tab[] =
      SLF };  /* NBR */
  
 /* private functions */
+
+/*------------------------------------------------------------------------*/
+/*  AMT - "multitable ref"                                                */
+/*     expr-stack: [... ... ... MTB TAB EXP] -> [... ... ... ... ... MTB] */
+/*     cont-stack: [... ... ... ... ... AMT] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ AMT(_NIL_TYPE_)
+{ _EXP_TYPE_ usr_siz, mtb_siz, mtb, dim, idx, dat, exp;
+  _UNS_TYPE_ ofs, i, j, s;
+  _SGN_TYPE_ nbr;
+
+  _stk_pop_EXP_(exp);
+  _stk_pop_EXP_(usr_siz);
+  _stk_peek_EXP_(mtb);
+
+  dim = _ag_get_MTB_DIM_(mtb);
+  mtb_siz = _ag_get_MTB_SIZ_(mtb);
+
+
+  if(_ag_get_NBU_(dim) == _ag_get_TAB_SIZ_(usr_siz)) {
+	  ofs = 0;
+	  for(i = 1; i<(_ag_get_NBU_(dim) + 1); ++i) {
+		  s = 1;
+		  for(j=i+1; j<(_ag_get_NBU_(dim) + 1); ++j) {
+			  idx = _ag_get_TAB_EXP_(mtb_siz, j);
+			  nbr = _ag_get_NBR_(idx);
+			  s = s*nbr;
+		  }
+		  idx = _ag_get_TAB_EXP_(usr_siz, i);
+		  nbr = _ag_get_NBR_(idx);
+		  if(nbr < 0)
+			  _error_(_IIX_ERROR_);
+		  else
+			  ofs += s*(nbr - 1);
+	  }
+	  ofs += 1;
+
+	  _ag_set_MTB_EXP_(mtb, ofs, exp);
+	  _stk_zap_CNT_();
+  }
+  else
+	  _error_(_IIX_ERROR_);
+}
 
 /*------------------------------------------------------------------------*/
 /*  NYI                                                                   */
@@ -399,7 +446,7 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_)
     	_stk_push_EXP_(exp);
     	_stk_push_EXP_(siz);
     	_stk_push_EXP_(_ONE_);
-    	_stk_push_CNT_(MMT);
+    	_stk_poke_CNT_(MMT);
     	_stk_push_CNT_(EST);
     	break;
       default: 
@@ -438,7 +485,8 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_)
            _stk_push_EXP_(exp);
            _stk_push_EXP_(_ONE_);
            _stk_push_EXP_(exp);
-           _stk_poke_CNT_(INI);
+           _stk_poke_CNT_(RMD);
+           _stk_push_CNT_(INI);
            _stk_push_CNT_(EXP); }
 	     else
 	       _error_(_SIZ_ERROR_);}
@@ -453,7 +501,7 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_)
 /*     expr-stack: [... DCT TAB EXP NBR VAL] -> [... DCT TAB EXP NBR EXP] */
 /*     cont-stack: [... ... ... ... ... INI] -> [... ... ... ... INI EXP] */
 /*                                                                        */
-/*     expr-stack: [... DCT TAB EXP NBR VAL] -> [... ... ... ... ... TAB] */
+/*     expr-stack: [... DCT TAB EXP NBR VAL] -> [... ... ... ... DCT TAB] */
 /*     cont-stack: [... ... ... ... ... INI] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ INI(_NIL_TYPE_)
@@ -480,8 +528,27 @@ static _NIL_TYPE_ INI(_NIL_TYPE_)
 		   _ag_set_DCT_DCT_(dct, _DCT_);
 		   _DCT_ = dct; 
 		   _stk_poke_EXP_(tab);
+	   _stk_push_EXP_(dct);
        _stk_zap_CNT_(); }}
-  
+
+/*------------------------------------------------------------------------*/
+/*  RMD                                                                   */
+/*     expr-stack: [... ... ... ... TAB DCT] -> [... ... ... ... ... TAB] */
+/*     cont-stack: [... ... ... ... ... RMD] -> [... ... ... ... ... ...] */
+/* Changed the INI continuation to leave the DCT on the stack.
+ * This continuation needs to be pushed before INI when creating a TAB,
+ * The INI function sets the val of the DCT to be the table it is initializing
+ * But for multitables, we want the multitable to be the value
+ * When leaving the DCT on the stack, we can change this value after the ini call
+ * This way we can re-use the INI continuation for multidimensional tables
+ */
+/*------------------------------------------------------------------------*/
+
+static _NIL_TYPE_ RMD(_NIL_TYPE_)
+{ _stk_zap_EXP_();
+  _stk_zap_CNT_();
+}
+
 /*------------------------------------------------------------------------*/
 /*  REF                                                                   */
 /*     expr-stack: [... ... ... ... TAB NBR] -> [... ... ... ... ... VAL] */
@@ -510,83 +577,96 @@ static _NIL_TYPE_ REF(_NIL_TYPE_)
    else 
      _error_(_NAT_ERROR_); }
 
-/*------------------------------------------------------------------------*/
-/*  REF                                                                   */
-/*     expr-stack: [... ... ... ... TAB TAB] -> [... ... ... ... ... VAL] */
-/*     cont-stack: [... ... ... ... ... MRF] -> [... ... ... ... ... ...] */
-/*------------------------------------------------------------------------*/
-/*static _NIL_TYPE_ MRF(_NIL_TYPE_)
- { _EXP_TYPE_ mtl;
-   _TAG_TYPE_ tag;
-   _stk_pop_EXP_(nbr);
-   _stk_peek_EXP_(tab);
-   tag = _ag_get_TAG_(tab);
-   if (TAB_tab[tag])
-     { siz = _ag_get_TAB_SIZ_(tab);
-       tag = _ag_get_TAG_(nbr);
-       if (tag == _NBR_TAG_)
-         { ctr = _ag_get_NBU_(nbr);
-           if ((ctr > 0) && (ctr <= siz))
-             { exp = _ag_get_TAB_EXP_(tab, ctr);
-               _stk_poke_EXP_(exp);
-               _stk_zap_CNT_(); }
-           else
-             _error_(_RNG_ERROR_); }
-       else
-        _error_(_IIX_ERROR_); }
-   else
-     _error_(_NAT_ERROR_); }*/
 
 /*------------------------------------------------------------------------*/
 /*  MMT  'make multidimensional table'                                    */
-/*     expr-stack: [... ... ... DCT EXP NBR] -> [... DCT TAB EXP *1* EXP] */
-/*     cont-stack: [... ... ... ... ... IDX] -> [... ... ... ... INI EXP] */
+/*     expr-stack: [... ... ... DCT EXP TAB] -> [... DCT TAB EXP *1* EXP] */
+/*     cont-stack: [... ... ... ... ... MMT] -> [... ... ... ... TODO TODO] */
 /*                                                                        */
-/*     expr-stack: [... ... ... DCT EXP NBR] -> [... ... ... ... ... *E*] */
-/*     cont-stack: [... ... ... ... ... IDX] -> [... ... ... ... ... ...] */
+/*     expr-stack: [... ... ... DCT EXP TAB] -> [... ... ... ... ... *E*] */
+/*     cont-stack: [... ... ... ... ... MMT] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ MMT(_NIL_TYPE_)
- { _EXP_TYPE_ dct, exp, dim, siz, mtb;
-   _UNS_TYPE_ max_siz;
+ { _EXP_TYPE_ dct, exp, dim, siz, mtb, nbr, dat_tab;
+   _UNS_TYPE_ max_siz, dat_siz, i;
+   _SGN_TYPE_ num;
    _TAG_TYPE_ tag;
    _stk_claim_();
    _mem_claim_();
 
    _stk_pop_EXP_(siz);
+   _stk_pop_EXP_(exp);
    max_siz = _ag_get_TAB_SIZ_(siz);
    tag = _ag_get_TAG_(siz);
    dim = _ag_make_NBU_(max_siz);
 
    printf("attempting to create a multidimensional table of dimension %u\n", max_siz);
    printf("siz tab has following sizes: [");
-   	  _UNS_TYPE_ i;
-   	  for(i=1; i<=max_siz; i++) {
-   		  _EXP_TYPE_ nbr = _ag_get_TAB_EXP_(siz, i);
-   		  if(_ag_get_TAG_(nbr) == _NBR_TAG_)
-   			  printf("%u ", _ag_get_NBU_(nbr));
-   		  else
-   			  printf("-%u- ", _ag_get_TAG_(nbr));
-   	  }
-   	  printf("]\n");
-   	  (void)fflush(stdout);
+
+   for(i=1; i<=max_siz; ++i) {
+	   nbr = _ag_get_TAB_EXP_(siz, i);
+	   if(_ag_get_TAG_(nbr) == _NBR_TAG_)
+		   printf("%d ", _ag_get_NBR_(nbr));
+	   else
+		   printf("-%u- ", _ag_get_TAG_(nbr));
+   }
+   printf("]\n");
+   (void)fflush(stdout);
+
 
    if (tag == _TAB_TAG_) {
 	   mtb = _ag_make_MTB_();
-       printf("need to finish making multitable and shit. SUCCESS\n");
-       (void)fflush(stdout);
+	   dat_siz = 1;
 
-       _stk_zap_CNT_();
-         /*  _stk_peek_EXP_(exp);
-           _stk_poke_EXP_(mtb);
-           _stk_push_EXP_(exp);
-           _stk_push_EXP_(_ONE_);
-           _stk_push_EXP_(exp);
-           _stk_poke_CNT_(INI);
-           _stk_push_CNT_(EXP); */
+	   for(i = 1; i<=max_siz; i++) {
+		   nbr = _ag_get_TAB_EXP_(siz, i);
+		   tag = _ag_get_TAG_(nbr);
+		   if(tag == _NBR_TAG_) {
+			   num = _ag_get_NBR_(nbr);
+			   if(num >= 0)
+					   dat_siz = dat_siz * num;
+			   else
+				   _error_(_IIX_ERROR_);
+		   }
+		   else
+			   _error_(_RNG_ERROR_);
+	   }
+	   _mem_claim_SIZ_(dat_siz);
+	   dat_tab = _ag_make_TAB_(dat_siz);
+	   _ag_set_MTB_DIM_(mtb, dim);
+	   _ag_set_MTB_SIZ_(mtb, siz);
+	   _ag_set_MTB_DAT_(mtb, dat_tab);
 
+       _stk_pop_EXP_(dct);
+       _stk_push_EXP_(mtb);
+       _stk_push_EXP_(dct);
+	   _stk_push_EXP_(dat_tab);
+	   _stk_push_EXP_(exp);
+	   _stk_push_EXP_(_ONE_);
+	   _stk_push_EXP_(exp);
+
+	   _stk_poke_CNT_(SMT);
+	   _stk_push_CNT_(INI);
+	   _stk_push_CNT_(EXP);
    }
    else
      _error_(_SIZ_ERROR_); }
+
+/*------------------------------------------------------------------------*/
+/*  SMT  'store multidimensional table'                                    */
+/*     expr-stack: [... ... ... MTB TAB DCT] -> [... ... ... ... ... MTB] */
+/*     cont-stack: [... ... ... ... ... SMT] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+
+static _NIL_TYPE_ SMT(_NIL_TYPE_)
+{   _EXP_TYPE_ mtb, dct, tab;
+	_stk_pop_EXP_(dct);
+	_stk_pop_EXP_(tab);
+	_stk_peek_EXP_(mtb);
+
+	_ag_set_DCT_VAL_(dct, mtb);
+	_stk_zap_CNT_();
+}
 
 /*------------------------------------------------------------------------*/
 /*  EST  'evaluate size table'                                            */
@@ -616,7 +696,6 @@ static _NIL_TYPE_ EST(_NIL_TYPE_)
 
 			_stk_push_EXP_(nbr);
 			_stk_push_EXP_(_ag_get_TAB_EXP_(siz_tab, ctr));
-			_stk_poke_CNT_(EST);
 			_stk_push_CNT_(SVT);
 			_stk_push_CNT_(EXP);
 		}
@@ -701,7 +780,7 @@ static _NIL_TYPE_ RPL(_NIL_TYPE_)
 /*     cont-stack: [... ... ... ... ... SET] -> [... ... ... RPL SWP EXP] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ SET(_NIL_TYPE_)
- { _EXP_TYPE_ arg, dct, exp, fun, idx, inv, nam, set, tab;
+ { _EXP_TYPE_ arg, dct, exp, fun, idx, inv, nam, set, tab, mtb, siz;
    _TAG_TYPE_ tag;
    _stk_claim_();
    _mem_claim_();
@@ -744,6 +823,20 @@ static _NIL_TYPE_ SET(_NIL_TYPE_)
         _stk_push_CNT_(SWP);    
         _stk_push_CNT_(EXP); 
         break; 
+      case _MTL_TAG_:
+    	  nam = _ag_get_TBL_NAM_(inv);
+    	  siz = _ag_get_TBL_IDX_(inv);
+    	  _dct_locate_(nam, dct, _DCT_);
+    	  mtb = _ag_get_DCT_VAL_(dct);
+    	  _stk_poke_EXP_(mtb);
+    	  _stk_push_EXP_(exp);
+    	  _stk_push_EXP_(siz);
+    	  _stk_push_EXP_(_ONE_);
+    	  _stk_poke_CNT_(AMT);
+    	  _stk_push_CNT_(EXP);
+    	  _stk_push_CNT_(SWP);
+    	  _stk_push_CNT_(EST);
+    	  break;
       default:
        _error_(_AGR_ERROR_); }}
         
@@ -812,6 +905,53 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_)
    _stk_push_CNT_(EXP);
  }
 
+/*------------------------------------------------------------------------*/
+/*  MRF - "multitable ref"                                                */
+/*     expr-stack: [... ... ... ... MTB TAB] -> [... ... ... ... ... EXP] */
+/*     cont-stack: [... ... ... ... ... MRF] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ MRF(_NIL_TYPE_)
+{ _EXP_TYPE_ usr_siz, mtb_siz, mtb, dim, idx, dat;
+  _UNS_TYPE_ ofs, i, j, s;
+  _SGN_TYPE_ nbr;
+  _stk_pop_EXP_(usr_siz);
+  _stk_peek_EXP_(mtb);
+
+  dim = _ag_get_MTB_DIM_(mtb);
+  mtb_siz = _ag_get_MTB_SIZ_(mtb);
+
+
+  if(_ag_get_NBU_(dim) == _ag_get_TAB_SIZ_(usr_siz)) {
+	  ofs = 0;
+	  for(i = 1; i<(_ag_get_NBU_(dim) + 1); ++i) {
+		  s = 1;
+		  for(j=i+1; j<(_ag_get_NBU_(dim) + 1); ++j) {
+			  idx = _ag_get_TAB_EXP_(mtb_siz, j);
+			  nbr = _ag_get_NBR_(idx);
+			  s = s*nbr;
+		  }
+		  idx = _ag_get_TAB_EXP_(usr_siz, i);
+		  nbr = _ag_get_NBR_(idx);
+		  if(nbr < 0)
+			  _error_(_IIX_ERROR_);
+		  else
+			  ofs += s*(nbr - 1);
+	  }
+	  ofs += 1;
+
+	  _stk_poke_EXP_(_ag_get_MTB_EXP_(mtb, ofs));
+	  _stk_zap_CNT_();
+  }
+  else
+	  _error_(_IIX_ERROR_);
+}
+
+
+/*------------------------------------------------------------------------*/
+/*  MTL                                                                   */
+/*     expr-stack: [... ... ... ... ... MTL] -> [... ... ... MTB TAB *1*] */
+/*     cont-stack: [... ... ... ... ... MTL] -> [... ... ... ... MRF EST] */
+/*------------------------------------------------------------------------*/
 static _NIL_TYPE_ MTL(_NIL_TYPE_)
 { _EXP_TYPE_ dct, siz, nam, mtb, mtl;
   _stk_claim_();
@@ -822,8 +962,9 @@ static _NIL_TYPE_ MTL(_NIL_TYPE_)
   mtb = _ag_get_DCT_VAL_(dct);
   _stk_poke_EXP_(mtb);
   _stk_push_EXP_(siz);
-  _stk_poke_CNT_(REF);
-  _stk_push_CNT_(EXP); // TODO
+  _stk_push_EXP_(_ONE_);
+  _stk_poke_CNT_(MRF);
+  _stk_push_CNT_(EST);
 }
 
 /*------------------------------------------------------------------------*/

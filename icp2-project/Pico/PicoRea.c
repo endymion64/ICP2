@@ -217,8 +217,6 @@ static _NIL_TYPE_ COM(_NIL_TYPE_)
    _stk_peek_EXP_(nbr);
    _stk_poke_EXP_(exp);
 
-   printf("reading commalist entry %u, current_token is %u\n", _ag_get_NBU_(exp), current_token);
-         (void)fflush(stdout);
    switch (current_token)
      { case _RBR_TOKEN_: 
          READ_TOKEN();
@@ -229,7 +227,7 @@ static _NIL_TYPE_ COM(_NIL_TYPE_)
            { _stk_pop_EXP_(exp);
              _ag_set_TAB_EXP_(tab, ctr, exp); } 
          while (--ctr);
-         _stk_push_EXP_(tab);
+         _stk_poke_EXP_(tab);
          _stk_zap_CNT_();
          break;
        case _COM_TOKEN_:
@@ -672,14 +670,10 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_)
   // Determine if exp is a one-number commalist, or a list with multiple numbers
   _UNS_TYPE_ siz = _ag_get_TAB_SIZ_(tab);
   if(siz == 1) {
-	  printf("\n%s", "creating regular table\n");
-	      (void)fflush(stdout);
 	  _EXP_TYPE_ idx = _ag_get_TAB_EXP_(tab, 1);
 	  _stk_push_EXP_(idx);
 	  _stk_poke_CNT_(TBl); }
   else {
-	  printf("\ncreating multidimensional table\n");
-	      (void)fflush(stdout);
 	  _stk_push_EXP_(tab);
 	  _stk_poke_CNT_(MTL);
   }
@@ -699,36 +693,22 @@ static _NIL_TYPE_ TBl(_NIL_TYPE_)
    _ag_set_TBL_NAM_(tbl, nam);      
    _ag_set_TBL_IDX_(tbl, idx);      
    _stk_poke_EXP_(tbl);
-   _stk_zap_CNT_();
-   printf("done creating table\n");
-   	       (void)fflush(stdout);}
+   _stk_zap_CNT_(); }
 
 /*------------------------------------------------------------------------*/
-/*  TBl                                                                   */
-/*     expr-stack: [... ... ... ... NAM EXP] -> [... ... ... ... ... MTL] */
+/*  MTL                                                                   */
+/*     expr-stack: [... ... ... ... NAM TAB] -> [... ... ... ... ... MTL] */
 /*     cont-stack: [... ... ... ... CNT MTL] -> [... ... ... ... ... CNT] */
 /*------------------------------------------------------------------------*/
 
 static _NIL_TYPE_ MTL(_NIL_TYPE_)
 { _EXP_TYPE_ siz, nam, mtl;
   _mem_claim_();
+
   mtl = _ag_make_MTL_();
   _stk_pop_EXP_(siz);
-  if(_ag_get_TAG_(siz) == _TAB_TAG_) {
-	  printf("multitable has following sizes: [");
-	  _UNS_TYPE_ i;
-	  for(i=1; i<=_ag_get_TAB_SIZ_(siz); i++) {
-		  _EXP_TYPE_ nbr = _ag_get_TAB_EXP_(siz, i);
-		  if(_ag_get_TAG_(nbr) == _NBR_TAG_)
-			  printf("%u ", _ag_get_NBU_(nbr));
-		  else
-			  printf("-%u- ", _ag_get_TAG_(nbr));
-	  }
-	  printf("]\n");
-	  (void)fflush(stdout);
-  }
-  (void)fflush(stdout);
-  _stk_pop_EXP_(nam);
+
+  _stk_peek_EXP_(nam);
   _ag_set_MTL_NAM_(mtl, nam);
   _ag_set_MTL_SIZ_(mtl, siz);
   _stk_poke_EXP_(mtl);

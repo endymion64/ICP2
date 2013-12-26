@@ -33,7 +33,7 @@
 
 #define MTB_DIM_INDEX 1
 #define MTB_SIZ_INDEX 2
-#define MTB_TAB_INDEX 3
+#define MTB_DAT_INDEX 3
 
 #define MTL_NAM_INDEX 1
 #define MTL_SIZ_INDEX 2
@@ -178,8 +178,11 @@
 #define _ag_get_MTB_SIZ_(MTB)\
  _mem_get_exp_(CHK_AGR(MTB, _MTB_TAG_), MTB_SIZ_INDEX)
 
-#define _ag_get_MTB_TAB_(MTB)\
- _mem_get_exp_(CHK_AGR(MTB, _MTB_TAG_), MTB_TAB_INDEX)
+#define _ag_get_MTB_DAT_(MTB)\
+ _mem_get_exp_(CHK_AGR(MTB, _MTB_TAG_), MTB_DAT_INDEX)
+
+#define _ag_get_MTB_EXP_(MTB, OFS)\
+ _ag_get_TAB_EXP_(_ag_get_MTB_DAT_(CHK_AGR(MTB, _MTB_TAG_)), OFS)
 
 #define _ag_get_NBR_(NBR)\
  _mem_get_nbr_(CHK_AGR(NBR, _NBR_TAG_))
@@ -268,23 +271,19 @@
 #define _ag_set_TAB_CNT_(TAB, IDX, CNT)\
  _mem_set_cnt_(TAB, IDX, CNT)
 
+#define _ag_set_MTB_DIM_(MTB, NBU)\
+ _mem_set_exp_(CHK_AGR(MTB, _MTB_TAG_), MTB_DIM_INDEX, NBU)
+
+#define _ag_set_MTB_SIZ_(MTB, SIZ)\
+ _mem_set_exp_(CHK_AGR(MTB, _MTB_TAG_), MTB_SIZ_INDEX, SIZ)
+
+#define _ag_set_MTB_DAT_(MTB, DAT_TAB)\
+ _mem_set_exp_(CHK_AGR(MTB, _MTB_TAG_), MTB_DAT_INDEX, DAT_TAB)
+
 #define _mtb_calc_ofs(SIZ, IDX)\
 
-#define _ag_set_MTB_TAB_(MTB, IDX, EXP)\
- _UNS_TYPE_ ofs = 0;\
- for(_UNS_TYPE_ i = 1; i<(_ag_get_MTB_DIM_(MTB) + 1); i++) {\
-	 _UNS_TYPE_ s = 1;\
-	 for(_UNS_TYPE_ j=i+1; j<(_ag_get_MTB_DIM_(MTB) + 1); j++) {\
-		 _NBR_TYPE_ idx = _ag_get_MTB_SIZ_(MTB);\
-		 _UNS_TYPE_ nbr = _ag_get_NBR_(idx);\
-		 s = s*nbr;\
-	 }\
-	 _NBR_TYPE_ idx = _ag_get_TAB_EXP(IDX, i);\
-	 _UNS_TYPE_ nbr = _ag_get_NBR_(idx);\
-	 ofs += s*(nbr - 1);\
- }\
- _TAB_TYPE_ dat = _ag_get_MTB_TAB_(MTB);\
- _mem_set_exp_(dat, ofs, EXP);
+#define _ag_set_MTB_EXP_(MTB, OFS, EXP)\
+ _ag_set_TAB_EXP_(_ag_get_MTB_DAT_(CHK_AGR(MTB, _MTB_TAG_)), OFS, EXP)
 
 #define _ag_set_FUN_NAM_(FUN, NAM)\
  _mem_set_exp_(CHK_AGR(FUN, _FUN_TAG_), FUN_NAM_INDEX, NAM)
