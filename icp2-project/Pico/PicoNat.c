@@ -432,6 +432,7 @@ static _NIL_TYPE_ VDU(_NIL_TYPE_);
 static _NIL_TYPE_ SZU(_NIL_TYPE_);
 static _NIL_TYPE_ DMU(_NIL_TYPE_);
 static _NIL_TYPE_ TBX(_NIL_TYPE_);
+static _NIL_TYPE_ TBP(_NIL_TYPE_);
 static _NIL_TYPE_ DSX(_NIL_TYPE_);
 static _NIL_TYPE_ DSY(_NIL_TYPE_);
 static _NIL_TYPE_ DSZ(_NIL_TYPE_);
@@ -2260,7 +2261,7 @@ static _NIL_TYPE_ TAB(_NIL_TYPE_)
 /*     cont-stack: [... ... ... ... ... TBX] -> [... ... ... ... TBX EVL] */
 /*                                                                        */
 /*     expr-stack: [... ... ARG TAB NBR VAL] -> [... ... ... ... ... TAB] */
-/*     cont-stack: [... ... ... ... ... TBX] -> [... ... ... ... ... ...] */
+/*     cont-stack: [... ... ... ... ... TBX] -> [... ... ... ... ... TBU] */
 /*------------------------------------------------------------------------*/
 
 static _NIL_TYPE_ TBX(_NIL_TYPE_)
@@ -2281,11 +2282,36 @@ static _NIL_TYPE_ TBX(_NIL_TYPE_)
        _stk_push_EXP_(exp);
        _stk_push_CNT_(EVL); 
        return; }
+
    _stk_poke_EXP_(tab);
    _stk_zap_CNT_(); }
 
 /*------------------------------------------------------------------------*/
-/*  DIM                                                                  */
+/*  TBP  - "Table production"                                             */
+/*     expr-stack: [... ... ... ... ... TAB] -> [... ... ... ... ... TAB] */
+/*     cont-stack: [... ... ... ... ... TBP] -> [... ... ... ... ... ...] */
+/*                                                                        */
+/*     expr-stack: [... ... ... ... ... TAB] -> [... ... ... ... ... MTB] */
+/*     cont-stack: [... ... ... ... ... TBP] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+
+static _NIL_TYPE_ TBP(_NIL_TYPE_)
+{ _EXP_TYPE_ arg, dim;
+  _TAG_TYPE_ tag;
+  _SGN_TYPE_ dim_val;
+  _stk_peek_EXP_(arg);
+  dim = _ag_get_TAB_EXP_(arg,1);
+  tag = _ag_get_TAG_(dim);
+  if (tag == _NBR_TAG_)
+    { dim_val = _ag_get_NBR_(dim);
+
+
+  }
+
+}
+
+/*------------------------------------------------------------------------*/
+/*  DIM                                                                   */
 /*     expr-stack: [... ... ... ... ... ARG] -> [... ... ... ... ... EVL] */
 /*     cont-stack: [... ... ... ... ... DIM] -> [... ... ... ... DMU EVL] */
 /*------------------------------------------------------------------------*/
