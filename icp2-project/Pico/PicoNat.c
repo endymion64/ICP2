@@ -2284,20 +2284,31 @@ static _NIL_TYPE_ TBX(_NIL_TYPE_)
    _stk_poke_EXP_(tab);
    _stk_zap_CNT_(); }
 
+/*------------------------------------------------------------------------*/
+/*  DIM                                                                  */
+/*     expr-stack: [... ... ... ... ... ARG] -> [... ... ... ... ... EVL] */
+/*     cont-stack: [... ... ... ... ... DIM] -> [... ... ... ... DMU EVL] */
+/*------------------------------------------------------------------------*/
+
 static _NIL_TYPE_ DIM(_NIL_TYPE_)
 {una(DMU, dim_STR);}
+
+/*------------------------------------------------------------------------*/
+/*  DMU                                                                   */
+/*     expr-stack: [... ... ... ... ... VAL] -> [... ... ... ... ... VAL] */
+/*     cont-stack: [... ... ... ... ... DMU] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
 
 static _NIL_TYPE_ DMU(_NIL_TYPE_)
 { _EXP_TYPE_ val, siz;
   _TAG_TYPE_ tag;
-  _STR_TYPE_ str;
   _stk_peek_EXP_(val);
   tag = _ag_get_TAG_(val);
   _stk_zap_CNT_();
-  if (tag == _MTB_TAG_){
-	  siz = _ag_get_MTB_DIM_(val);
-	  _stk_poke_EXP_(siz);
-	  return;}
+  if (tag == _MTB_TAG_)
+    { siz = _ag_get_MTB_DIM_(val);
+	 _stk_poke_EXP_(siz);
+	 return;}
   _error_str_(_ATC_ERROR_, siz_STR);
 
 }
