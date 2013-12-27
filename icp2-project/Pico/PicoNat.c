@@ -286,9 +286,10 @@
 #define fun_STR "is_function" 
 #define tbl_STR "is_table" 
 #define vdd_STR "is_void" 
-   /*--TABLE----------*/
+   /*--(MULTIDIMENSIONAL)TABLE----------*/
 #define siz_STR "size" 
-#define tab_STR "tab" 
+#define tab_STR "tab"
+#define dim_STR "dimension"
    /*--INTERACTION----*/
 #define dsp_STR "display" 
 #define acp_STR "accept" 
@@ -360,9 +361,10 @@ static _NIL_TYPE_ TXT(_NIL_TYPE_);
 static _NIL_TYPE_ FUN(_NIL_TYPE_);
 static _NIL_TYPE_ TBL(_NIL_TYPE_);
 static _NIL_TYPE_ VDD(_NIL_TYPE_);
-   /*--TABLE----------*/
+   /*--(MULTIDIMENSIONAL)TABLE----------*/
 static _NIL_TYPE_ SIZ(_NIL_TYPE_);
 static _NIL_TYPE_ TAB(_NIL_TYPE_);
+static _NIL_TYPE_ DIM(_NIL_TYPE_);
    /*--INTERACTION----*/
 static _NIL_TYPE_ DSP(_NIL_TYPE_);
 static _NIL_TYPE_ ACP(_NIL_TYPE_);
@@ -428,6 +430,7 @@ static _NIL_TYPE_ FNU(_NIL_TYPE_);
 static _NIL_TYPE_ TBU(_NIL_TYPE_);
 static _NIL_TYPE_ VDU(_NIL_TYPE_);
 static _NIL_TYPE_ SZU(_NIL_TYPE_);
+static _NIL_TYPE_ DMU(_NIL_TYPE_);
 static _NIL_TYPE_ TBX(_NIL_TYPE_);
 static _NIL_TYPE_ DSX(_NIL_TYPE_);
 static _NIL_TYPE_ DSY(_NIL_TYPE_);
@@ -499,9 +502,10 @@ static const _CNT_TYPE_ FUN_tab[] =
    FUN,
    TBL,
    VDD,
-   /*--TABLE----------*/
+   /*--(MULTIDIMENSIONAL)TABLE----------*/
    SIZ,
    TAB,
+   DIM,
    /* INTERACTION-----*/
    DSP,
    ACP,
@@ -572,9 +576,10 @@ static const _STR_TYPE_ STR_tab[] =
    fun_STR,
    tbl_STR, 
    vdd_STR, 
-   /*--TABLE----------*/
+   /*--(MULTIDIMENSIONAL)TABLE----------*/
    siz_STR,  
-   tab_STR, 
+   tab_STR,
+   dim_STR,
    /*--INTERACTION----*/
    dsp_STR, 
    acp_STR, 
@@ -2200,7 +2205,7 @@ static _NIL_TYPE_ SIZ(_NIL_TYPE_)
 /*------------------------------------------------------------------------*/
 
 static _NIL_TYPE_ SZU(_NIL_TYPE_)
- { _EXP_TYPE_ val;
+ { _EXP_TYPE_ val, siz;
    _TAG_TYPE_ tag;
    _STR_TYPE_ str;
    _stk_peek_EXP_(val);
@@ -2213,7 +2218,11 @@ static _NIL_TYPE_ SZU(_NIL_TYPE_)
        case _TXT_TAG_:
          str = _ag_get_TXT_(val);
          _stk_poke_EXP_(_ag_make_NBU_(strlen(str))); 
-         return; }   
+         return;
+       case _MTB_TAG_:
+    	 siz = _ag_get_MTB_SIZ_(val);
+    	 _stk_poke_EXP_(siz);
+    	 return;}
    _error_str_(_ATC_ERROR_, siz_STR); }
 
 /*------------------------------------------------------------------------*/
@@ -2274,6 +2283,24 @@ static _NIL_TYPE_ TBX(_NIL_TYPE_)
        return; }
    _stk_poke_EXP_(tab);
    _stk_zap_CNT_(); }
+
+static _NIL_TYPE_ DIM(_NIL_TYPE_)
+{una(DMU, dim_STR);}
+
+static _NIL_TYPE_ DMU(_NIL_TYPE_)
+{ _EXP_TYPE_ val, siz;
+  _TAG_TYPE_ tag;
+  _STR_TYPE_ str;
+  _stk_peek_EXP_(val);
+  tag = _ag_get_TAG_(val);
+  _stk_zap_CNT_();
+  if (tag == _MTB_TAG_){
+	  siz = _ag_get_MTB_DIM_(val);
+	  _stk_poke_EXP_(siz);
+	  return;}
+  _error_str_(_ATC_ERROR_, siz_STR);
+
+}
 
 /*------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------*/
