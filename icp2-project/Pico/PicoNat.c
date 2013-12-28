@@ -230,7 +230,7 @@
 
 /* private constants */
 
-#define NATIVE_SIZE 59
+#define NATIVE_SIZE 61 //since dimension and mtab were added
 
 #define CAL _eval_CAL_
 #define EVL _eval_EXP_
@@ -285,11 +285,13 @@
 #define txt_STR "is_text" 
 #define fun_STR "is_function" 
 #define tbl_STR "is_table" 
-#define vdd_STR "is_void" 
+#define vdd_STR "is_void"
+#define mtl_STR "is_multitable"
    /*--(MULTIDIMENSIONAL)TABLE----------*/
 #define siz_STR "size" 
 #define tab_STR "tab"
 #define dim_STR "dimension"
+#define mtb_STR "mtab"
    /*--INTERACTION----*/
 #define dsp_STR "display" 
 #define acp_STR "accept" 
@@ -361,10 +363,13 @@ static _NIL_TYPE_ TXT(_NIL_TYPE_);
 static _NIL_TYPE_ FUN(_NIL_TYPE_);
 static _NIL_TYPE_ TBL(_NIL_TYPE_);
 static _NIL_TYPE_ VDD(_NIL_TYPE_);
+static _NIL_TYPE_ TBL(_NIL_TYPE_);
+static _NIL_TYPE_ MTL(_NIL_TYPE_);
    /*--(MULTIDIMENSIONAL)TABLE----------*/
 static _NIL_TYPE_ SIZ(_NIL_TYPE_);
 static _NIL_TYPE_ TAB(_NIL_TYPE_);
 static _NIL_TYPE_ DIM(_NIL_TYPE_);
+static _NIL_TYPE_ MTB(_NIL_TYPE_);
    /*--INTERACTION----*/
 static _NIL_TYPE_ DSP(_NIL_TYPE_);
 static _NIL_TYPE_ ACP(_NIL_TYPE_);
@@ -429,10 +434,12 @@ static _NIL_TYPE_ TXU(_NIL_TYPE_);
 static _NIL_TYPE_ FNU(_NIL_TYPE_);
 static _NIL_TYPE_ TBU(_NIL_TYPE_);
 static _NIL_TYPE_ VDU(_NIL_TYPE_);
+static _NIL_TYPE_ MTU(_NIL_TYPE_);
 static _NIL_TYPE_ SZU(_NIL_TYPE_);
 static _NIL_TYPE_ DMU(_NIL_TYPE_);
 static _NIL_TYPE_ TBX(_NIL_TYPE_);
-static _NIL_TYPE_ TBP(_NIL_TYPE_);
+static _NIL_TYPE_ MTX(_NIL_TYPE_);
+static _NIL_TYPE_ MTP(_NIL_TYPE_);
 static _NIL_TYPE_ DSX(_NIL_TYPE_);
 static _NIL_TYPE_ DSY(_NIL_TYPE_);
 static _NIL_TYPE_ DSZ(_NIL_TYPE_);
@@ -503,10 +510,12 @@ static const _CNT_TYPE_ FUN_tab[] =
    FUN,
    TBL,
    VDD,
+   MTL,
    /*--(MULTIDIMENSIONAL)TABLE----------*/
    SIZ,
    TAB,
    DIM,
+   MTB,
    /* INTERACTION-----*/
    DSP,
    ACP,
@@ -577,10 +586,12 @@ static const _STR_TYPE_ STR_tab[] =
    fun_STR,
    tbl_STR, 
    vdd_STR, 
+   mtl_STR,
    /*--(MULTIDIMENSIONAL)TABLE----------*/
    siz_STR,  
    tab_STR,
    dim_STR,
+   mtb_STR,
    /*--INTERACTION----*/
    dsp_STR, 
    acp_STR, 
@@ -2167,22 +2178,40 @@ static _NIL_TYPE_ TBU(_NIL_TYPE_)
  { nat_tag(_TAB_TAG_); }
 
 /*------------------------------------------------------------------------*/
-/*  TBL                                                                   */
+/*  VDD                                                                   */
 /*     expr-stack: [... ... ... ... ... ARG] -> [... ... ... ... ... EVL] */
-/*     cont-stack: [... ... ... ... ... VOI] -> [... ... ... ... VOU EVL] */
+/*     cont-stack: [... ... ... ... ... VDD] -> [... ... ... ... VDU EVL] */
 /*------------------------------------------------------------------------*/
 
 static _NIL_TYPE_ VDD(_NIL_TYPE_)
  { una(VDU, vdd_STR); }
 
 /*------------------------------------------------------------------------*/
-/*  TBU                                                                   */
+/*  VDU                                                                   */
 /*     expr-stack: [... ... ... ... ... VAL] -> [... ... ... ... ... VAL] */
 /*     cont-stack: [... ... ... ... ... VDU] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
 
 static _NIL_TYPE_ VDU(_NIL_TYPE_)
  { nat_tag(_VOI_TAG_); }
+
+/*------------------------------------------------------------------------*/
+/*  MTL                                                                   */
+/*     expr-stack: [... ... ... ... ... ARG] -> [... ... ... ... ... EVL] */
+/*     cont-stack: [... ... ... ... ... MTL] -> [... ... ... ... MTU EVL] */
+/*------------------------------------------------------------------------*/
+
+static _NIL_TYPE_ MTL(_NIL_TYPE_)
+ { una(MTU, mtl_STR); }
+
+/*------------------------------------------------------------------------*/
+/*  MTU                                                                   */
+/*     expr-stack: [... ... ... ... ... VAL] -> [... ... ... ... ... VAL] */
+/*     cont-stack: [... ... ... ... ... MTU] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+
+static _NIL_TYPE_ MTU(_NIL_TYPE_)
+ { nat_tag(_MTB_TAG_); }
 
 /*------------------------------------------------------------------------*/
 /*------------------------------------------------------------------------*/
@@ -2261,7 +2290,7 @@ static _NIL_TYPE_ TAB(_NIL_TYPE_)
 /*     cont-stack: [... ... ... ... ... TBX] -> [... ... ... ... TBX EVL] */
 /*                                                                        */
 /*     expr-stack: [... ... ARG TAB NBR VAL] -> [... ... ... ... ... TAB] */
-/*     cont-stack: [... ... ... ... ... TBX] -> [... ... ... ... ... TBU] */
+/*     cont-stack: [... ... ... ... ... TBX] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
 
 static _NIL_TYPE_ TBX(_NIL_TYPE_)
@@ -2287,28 +2316,133 @@ static _NIL_TYPE_ TBX(_NIL_TYPE_)
    _stk_zap_CNT_(); }
 
 /*------------------------------------------------------------------------*/
-/*  TBP  - "Table production"                                             */
-/*     expr-stack: [... ... ... ... ... TAB] -> [... ... ... ... ... TAB] */
-/*     cont-stack: [... ... ... ... ... TBP] -> [... ... ... ... ... ...] */
+/*  MTB                                                                   */
+/*     expr-stack: [... ... ... ... ... ARG] -> [... ... ARG TAB NBR EVL] */
+/*     cont-stack: [... ... ... ... ... MTB] -> [... ... ... ... MTX EVL] */
 /*                                                                        */
-/*     expr-stack: [... ... ... ... ... TAB] -> [... ... ... ... ... MTB] */
-/*     cont-stack: [... ... ... ... ... TBP] -> [... ... ... ... ... ...] */
+/*     expr-stack: [... ... ... ... ... ARG] -> [... ... ... ... ... EMP] */
+/*     cont-stack: [... ... ... ... ... MTB] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
 
-static _NIL_TYPE_ TBP(_NIL_TYPE_)
-{ _EXP_TYPE_ arg, dim;
-  _TAG_TYPE_ tag;
-  _SGN_TYPE_ dim_val;
-  _stk_peek_EXP_(arg);
-  dim = _ag_get_TAB_EXP_(arg,1);
-  tag = _ag_get_TAG_(dim);
-  if (tag == _NBR_TAG_)
-    { dim_val = _ag_get_NBR_(dim);
+static _NIL_TYPE_ MTB(_NIL_TYPE_) //NOTE: almost exact copy of TAB
+{ _EXP_TYPE_ arg, exp, tab;
+   _UNS_TYPE_ siz;
+   _stk_claim_();
+   _stk_peek_EXP_(arg);
+   siz = _ag_get_TAB_SIZ_(arg);
+   if (siz == 0)
+     { _stk_poke_EXP_(_EMPTY_);
+       _stk_zap_CNT_();
+       return; }
+   _mem_claim_SIZ_(siz);
+   tab = _ag_make_TAB_(siz);
+   _stk_peek_EXP_(arg);
+   _stk_push_EXP_(tab);
+   _stk_push_EXP_(_ONE_);
+   exp = _ag_get_TAB_EXP_(arg, 1);
+   _stk_push_EXP_(exp);
+   _stk_poke_CNT_(MTX); // Here's the difference with TAB
+   _stk_push_CNT_(EVL); }
 
+/*------------------------------------------------------------------------*/
+/*  MTX                                                                   */
+/*     expr-stack: [... ... ARG TAB NBR VAL] -> [... ... ARG TAB NBR EVL] */
+/*     cont-stack: [... ... ... ... ... MTX] -> [... ... ... ... MTX EVL] */
+/*                                                                        */
+/*     expr-stack: [... ... ARG TAB NBR VAL] -> [... ... ... ... ... TAB] */
+/*     cont-stack: [... ... ... ... ... MTX] -> [... ... ... ... ... MTP] */
+/*------------------------------------------------------------------------*/
 
+static _NIL_TYPE_ MTX(_NIL_TYPE_) //NOTE: almost exact copy of TBX
+ { _EXP_TYPE_ arg, exp, nbr, tab, val;
+   _UNS_TYPE_ ctr, siz;
+   _stk_claim_();
+   _stk_pop_EXP_(val);
+   _stk_pop_EXP_(nbr);
+   _stk_pop_EXP_(tab);
+   _stk_peek_EXP_(arg);
+   siz = _ag_get_TAB_SIZ_(arg);
+   ctr = _ag_get_NBU_(nbr);
+   _ag_set_TAB_EXP_(tab, ctr, val);
+   if (ctr < siz)
+     { _stk_push_EXP_(tab);
+       _stk_push_EXP_(_ag_succ_NBR_(nbr));
+       exp = _ag_get_TAB_EXP_(arg, ctr+1);
+       _stk_push_EXP_(exp);
+       _stk_push_CNT_(EVL);
+       return; }
+   _stk_poke_EXP_(tab); // Here's the difference with TBX
+   _stk_poke_CNT_(MTP); }
+
+/*------------------------------------------------------------------------*/
+/*  MTP                                                                   */
+/*     expr-stack: [... ... ... ... ... TAB] -> [... ... ... ... ... MTB] */
+/*     cont-stack: [... ... ... ... ... MTP] -> [... ... ... ... ... ...] */
+/*                                                                        */
+/*     expr-stack: [... ... ... ... ... TAB] -> [... ... ... ... ... TAB] */
+/*     cont-stack: [... ... ... ... ... MTP] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+
+static _NIL_TYPE_ MTP(_NIL_TYPE_)
+ { _EXP_TYPE_ arg, dim, mtb, siz_tab, dat_tab, val;
+   _TAG_TYPE_ dim_tag;
+   _UNS_TYPE_ ctr, siz;
+   _SGN_TYPE_ nbr, skp;
+   _stk_claim_();
+   _mem_claim_();
+   _stk_peek_EXP_(arg);
+   dim = _ag_get_TAB_EXP_(arg,1);
+   dim_tag = _ag_get_TAG_(dim);
+  if(dim_tag == _NBR_TAG_){
+	  nbr = _ag_get_NBR_(dim);
+	  if(nbr<=0)
+		  _error_(_IAG_ERROR_);
+	  else if(nbr==1){
+		  // create table
+		  // TODO: check whether the second argument is actually a number and that you gave enough data according to that argument
+		  siz = _ag_get_TAB_SIZ_(arg);
+		  siz -= 2;
+		  _mem_claim_SIZ_(siz);
+		  mtb = _ag_make_TAB_(siz);
+		  for(ctr = _ag_get_NBU_(_ONE_); ctr < siz+1; ++ctr)
+			  _ag_set_TAB_EXP_(mtb,ctr,_ag_get_TAB_EXP_(arg,ctr+2));
+	  }
+	  else{
+		  // Initialize size table
+		  _mem_claim_SIZ_(nbr);
+		  siz_tab = _ag_make_TAB_(nbr);
+		  siz=1;
+		  for(ctr = _ag_get_NBU_(_ONE_); ctr < nbr+1; ++ctr)
+		  { val = _ag_get_TAB_EXP_(arg,ctr+1);
+			if((_ag_get_TAG_(val) == _NBR_TAG_) && (_ag_get_NBR_(val)>0)){
+				  _ag_set_TAB_EXP_(siz_tab,ctr,val);
+				  siz *= _ag_get_NBR_(val);
+			  }
+			else
+				_error_(_IAG_ERROR_);
+		  	}
+
+		  // Initialize data table
+		  skp = nbr + 1;
+		  _mem_claim_SIZ_(siz);
+		  dat_tab = _ag_make_TAB_(siz);
+		  for(ctr = _ag_get_NBU_(_ONE_); ctr < siz+1; ++ctr){
+		  	_ag_set_TAB_EXP_(dat_tab,ctr,_ag_get_TAB_EXP_(arg,ctr+skp));
+		  	}
+		  // Create multidimensional table
+		  mtb = _ag_make_MTB_();
+		  _ag_set_MTB_DIM_(mtb, dim);
+		  _ag_set_MTB_SIZ_(mtb, siz_tab);
+		  _ag_set_MTB_DAT_(mtb, dat_tab);
+	  }
+	  _stk_poke_EXP_(mtb);
+	  _stk_zap_CNT_();
+   }
+  else {
+	  _error_(_IAG_ERROR_);
   }
-
 }
+
 
 /*------------------------------------------------------------------------*/
 /*  DIM                                                                   */
