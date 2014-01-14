@@ -100,7 +100,7 @@
           
           `if our table is a normal TBL (one index), get the first element.`
           `Because TBL expects the index to be there immediately as NBR, not as a table of NBR's`
-          if(size(idx[TAB_TAB_idx]) = 1,
+          if(size(idx_tab) = 1,
              TBL(Var, idx_tab[1]), 
              MTL(Var, idx_tab))};
 
