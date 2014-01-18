@@ -280,8 +280,6 @@
 #define _ag_set_MTB_DAT_(MTB, DAT_TAB)\
  _mem_set_exp_(CHK_AGR(MTB, _MTB_TAG_), MTB_DAT_INDEX, DAT_TAB)
 
-#define _mtb_calc_ofs(SIZ, IDX)\
-
 #define _ag_set_MTB_EXP_(MTB, OFS, EXP)\
  _ag_set_TAB_EXP_(_ag_get_MTB_DAT_(CHK_AGR(MTB, _MTB_TAG_)), OFS, EXP)
 

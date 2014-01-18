@@ -137,7 +137,70 @@ static _NIL_TYPE_ FUN(_NIL_TYPE_)
    str = _ag_get_TXT_(nam);
    sprintf(_TEXT_BUF_, "<function %s>", str);
    _print_(_TEXT_BUF_); }
-                                
+                             
+/*------------------------------------------------------------------------*/
+/*  MTB                                                                   */
+/*     expr-stack: [... ... ... ... ... MTB] -> [... ... ... TAB *1* EXP] */
+/*     cont-stack: [... ... ... ... ... MTB] -> [... ... ... ... ... TAB] */
+/*                                                                        */
+/*     expr-stack: [... ... ... ... ... MTB] -> [... ... ... ... ... EOL] */
+/*     cont-stack: [... ... ... ... ... MTB] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ MTB(_NIL_TYPE_)
+ { _EXP_TYPE_ dim, siz, dat, mtb;
+   _SGN_TYPE_ nbr;
+   _stk_claim_();
+   _stk_peek_EXP_(mtb);
+
+   dim = _ag_get_MTB_DIM_(mtb);
+   siz = _ag_get_MTB_SIZ_(mtb);
+   dat = _ag_get_MTB_DAT_(mtb);
+
+   _stk_push_EXP_(dat);
+   _stk_poke_CNT_(TAB);
+
+   _stk_push_EXP_(_ag_make_TXT_("Data: "));
+   _stk_push_CNT_(SKP);
+   _stk_push_CNT_(TXT);
+
+   _stk_push_EXP_(_ag_make_TXT_("\n"));
+   _stk_push_CNT_(SKP);
+   _stk_push_CNT_(TXT);
+
+
+   _stk_push_EXP_(siz);
+   _stk_push_CNT_(SKP);
+   _stk_push_CNT_(TAB);
+
+   _stk_push_EXP_(_ag_make_TXT_("Sizes: "));
+   _stk_push_CNT_(SKP);
+   _stk_push_CNT_(TXT);
+
+   _stk_push_EXP_(_ag_make_TXT_("\n"));
+   _stk_push_CNT_(SKP);
+   _stk_push_CNT_(TXT);
+
+   _stk_push_CNT_(SKP);
+   _stk_push_EXP_(dim);
+   _stk_push_CNT_(EXP);
+
+   _stk_push_CNT_(SKP);
+   _stk_push_EXP_(_ag_make_TXT_("Dimension: "));
+   _stk_push_CNT_(TXT);
+
+ }
+ 
+/*------------------------------------------------------------------------*/
+/*  MTL                                                                   */
+/*     expr-stack: [... ... ... ... ... MTL] -> [... ... ... ... ... EOL] */
+/*     cont-stack: [... ... ... ... ... MTL] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ MTL(_NIL_TYPE_)
+ { _stk_poke_EXP_(_EOLN_);
+   _stk_zap_CNT_();
+   _print_(MTL_TEXT); }  
+   
+    
 /*------------------------------------------------------------------------*/
 /*  NAT                                                                   */
 /*     expr-stack: [... ... ... ... ... NAT] -> [... ... ... ... ... EOL] */
@@ -210,15 +273,6 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_)
    _print_(TBL_TEXT); }
 
 /*------------------------------------------------------------------------*/
-/*  MTL                                                                   */
-/*     expr-stack: [... ... ... ... ... MTL] -> [... ... ... ... ... EOL] */
-/*     cont-stack: [... ... ... ... ... MTL] -> [... ... ... ... ... ...] */
-/*------------------------------------------------------------------------*/
-static _NIL_TYPE_ MTL(_NIL_TYPE_)
- { _stk_poke_EXP_(_EOLN_);
-   _stk_zap_CNT_();
-   _print_(MTL_TEXT); }
-/*------------------------------------------------------------------------*/
 /*  TXT                                                                   */
 /*     expr-stack: [... ... ... ... ... TXT] -> [... ... ... ... ... EOL] */
 /*     cont-stack: [... ... ... ... ... TXT] -> [... ... ... ... ... ...] */
@@ -257,58 +311,6 @@ static _NIL_TYPE_ TAB(_NIL_TYPE_)
      { _stk_poke_EXP_(_EOLN_);
        _stk_zap_CNT_();
        _print_("[]"); }}
-
-/*------------------------------------------------------------------------*/
-/*  MTB                                                                   */
-/*     expr-stack: [... ... ... ... ... MTB] -> [... ... ... TAB *1* EXP] */
-/*     cont-stack: [... ... ... ... ... MTB] -> [... ... ... ... ... TAB] */
-/*                                                                        */
-/*     expr-stack: [... ... ... ... ... MTB] -> [... ... ... ... ... EOL] */
-/*     cont-stack: [... ... ... ... ... MTB] -> [... ... ... ... ... ...] */
-/*------------------------------------------------------------------------*/
-static _NIL_TYPE_ MTB(_NIL_TYPE_)
- { _EXP_TYPE_ dim, siz, dat, mtb;
-   _SGN_TYPE_ nbr;
-   _stk_claim_();
-   _stk_peek_EXP_(mtb);
-
-   dim = _ag_get_MTB_DIM_(mtb);
-   siz = _ag_get_MTB_SIZ_(mtb);
-   dat = _ag_get_MTB_DAT_(mtb);
-
-   _stk_push_EXP_(dat);
-   _stk_poke_CNT_(TAB);
-
-   _stk_push_EXP_(_ag_make_TXT_("Data: "));
-   _stk_push_CNT_(SKP);
-   _stk_push_CNT_(TXT);
-
-   _stk_push_EXP_(_ag_make_TXT_("\n"));
-   _stk_push_CNT_(SKP);
-   _stk_push_CNT_(TXT);
-
-
-   _stk_push_EXP_(siz);
-   _stk_push_CNT_(SKP);
-   _stk_push_CNT_(TAB);
-
-   _stk_push_EXP_(_ag_make_TXT_("Sizes: "));
-   _stk_push_CNT_(SKP);
-   _stk_push_CNT_(TXT);
-
-   _stk_push_EXP_(_ag_make_TXT_("\n"));
-   _stk_push_CNT_(SKP);
-   _stk_push_CNT_(TXT);
-
-   _stk_push_CNT_(SKP);
-   _stk_push_EXP_(dim);
-   _stk_push_CNT_(EXP);
-
-   _stk_push_CNT_(SKP);
-   _stk_push_EXP_(_ag_make_TXT_("Dimension: "));
-   _stk_push_CNT_(TXT);
-
- }
 
 /*------------------------------------------------------------------------*/
 /*  TAb                                                                   */

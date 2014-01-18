@@ -94,7 +94,7 @@ static const _CNT_TYPE_ CNT_tab[] =
 /* private functions */
 
 /*------------------------------------------------------------------------*/
-/*  AMT - "multitable ref"                                                */
+/*  AMT - "assign multitable"                                             */
 /*     expr-stack: [... ... ... MTB TAB EXP] -> [... ... ... ... ... MTB] */
 /*     cont-stack: [... ... ... ... ... AMT] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
@@ -402,8 +402,8 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_)
    inv = _ag_get_DEF_INV_(def);
    exp = _ag_get_DEF_EXP_(def);
    tag = _ag_get_TAG_(inv);
-   printf("evaluating definition with tag %u \n", tag);
-   	      (void)fflush(stdout);
+  // printf("evaluating definition with tag %u \n", tag);
+  // 	      (void)fflush(stdout);
    switch (tag)
     { case _VAR_TAG_:
         nam = _ag_get_VAR_NAM_(inv);
@@ -451,6 +451,47 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_)
     	break;
       default: 
         _error_(_AGR_ERROR_); }}
+
+/*------------------------------------------------------------------------*/
+/*  EST  'evaluate size table'                                            */
+/*     expr-stack: [... ... ... ... TAB *1*] -> [... ... ... ... ... TAB] */
+/*     cont-stack: [... ... ... ... ... EST] -> [... ... ... ... ... ...] */
+/*																	      */
+/*     expr-stack: [... ... ... ... TAB UNS] -> [... ... ... TAB UNS EXP] */
+/*     cont-stack: [... ... ... ... ... EST] -> [... ... ... ... EXP STV] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ EST(_NIL_TYPE_)
+ { _EXP_TYPE_ siz_tab, nbr;
+   _UNS_TYPE_ ctr, siz_amt;
+   _TAG_TYPE_ tag;
+
+   _stk_pop_EXP_(nbr);
+   _stk_peek_EXP_(siz_tab);
+
+   ctr = _ag_get_NBU_(nbr);
+   siz_amt = _ag_get_TAB_SIZ_(siz_tab);
+
+   tag = _ag_get_TAG_(siz_tab);
+
+	if (tag == _TAB_TAG_) {
+		if(ctr <= siz_amt) {
+			//printf("evaluating index %u in the sizes table\n", ctr);
+			//(void)fflush(stdout);
+
+			_stk_push_EXP_(nbr);
+			_stk_push_EXP_(_ag_get_TAB_EXP_(siz_tab, ctr));
+			_stk_push_CNT_(SVT);
+			_stk_push_CNT_(EXP);
+		}
+		else {
+			//printf("done evaluating indices.\n");
+			//(void)fflush(stdout);
+			_stk_zap_CNT_();
+		}
+	}
+	else
+		_error_(_NAT_ERROR_);
+ }
    
 /*------------------------------------------------------------------------*/
 /*  IDX                                                                   */
@@ -485,8 +526,7 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_)
            _stk_push_EXP_(exp);
            _stk_push_EXP_(_ONE_);
            _stk_push_EXP_(exp);
-           _stk_poke_CNT_(RMD);
-           _stk_push_CNT_(INI);
+           _stk_poke_CNT_(INI);
            _stk_push_CNT_(EXP); }
 	     else
 	       _error_(_SIZ_ERROR_);}
@@ -501,7 +541,7 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_)
 /*     expr-stack: [... DCT TAB EXP NBR VAL] -> [... DCT TAB EXP NBR EXP] */
 /*     cont-stack: [... ... ... ... ... INI] -> [... ... ... ... INI EXP] */
 /*                                                                        */
-/*     expr-stack: [... DCT TAB EXP NBR VAL] -> [... ... ... ... DCT TAB] */
+/*     expr-stack: [... DCT TAB EXP NBR VAL] -> [... ... ... ... ... TAB] */
 /*     cont-stack: [... ... ... ... ... INI] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ INI(_NIL_TYPE_)
@@ -528,63 +568,12 @@ static _NIL_TYPE_ INI(_NIL_TYPE_)
 		   _ag_set_DCT_DCT_(dct, _DCT_);
 		   _DCT_ = dct; 
 		   _stk_poke_EXP_(tab);
-	   _stk_push_EXP_(dct);
        _stk_zap_CNT_(); }}
 
 /*------------------------------------------------------------------------*/
-/*  RMD                                                                   */
-/*     expr-stack: [... ... ... ... TAB DCT] -> [... ... ... ... ... TAB] */
-/*     cont-stack: [... ... ... ... ... RMD] -> [... ... ... ... ... ...] */
-/* Changed the INI continuation to leave the DCT on the stack.
- * This continuation needs to be pushed before INI when creating a TAB,
- * The INI function sets the val of the DCT to be the table it is initializing
- * But for multitables, we want the multitable to be the value
- * When leaving the DCT on the stack, we can change this value after the ini call
- * This way we can re-use the INI continuation for multidimensional tables
- */
-/*------------------------------------------------------------------------*/
-
-static _NIL_TYPE_ RMD(_NIL_TYPE_)
-{ _stk_zap_EXP_();
-  _stk_zap_CNT_();
-}
-
-/*------------------------------------------------------------------------*/
-/*  REF                                                                   */
-/*     expr-stack: [... ... ... ... TAB NBR] -> [... ... ... ... ... VAL] */
-/*     cont-stack: [... ... ... ... ... REF] -> [... ... ... ... ... ...] */
-/*------------------------------------------------------------------------*/
-static _NIL_TYPE_ REF(_NIL_TYPE_)
- { _EXP_TYPE_ exp, nbr, tab;
-   _UNS_TYPE_ ctr, siz;
-   _TAG_TYPE_ tag;
-   _stk_pop_EXP_(nbr);
-   _stk_peek_EXP_(tab);
-   tag = _ag_get_TAG_(tab);
-   if (TAB_tab[tag])
-     { siz = _ag_get_TAB_SIZ_(tab);
-       tag = _ag_get_TAG_(nbr);
-       if (tag == _NBR_TAG_)
-         { ctr = _ag_get_NBU_(nbr);
-           if ((ctr > 0) && (ctr <= siz))
-             { exp = _ag_get_TAB_EXP_(tab, ctr);
-               _stk_poke_EXP_(exp);
-               _stk_zap_CNT_(); }
-           else
-             _error_(_RNG_ERROR_); }
-       else
-        _error_(_IIX_ERROR_); }
-   else 
-     _error_(_NAT_ERROR_); }
-
-
-/*------------------------------------------------------------------------*/
 /*  MMT  'make multidimensional table'                                    */
-/*     expr-stack: [... ... ... DCT EXP TAB] -> [... DCT TAB EXP *1* EXP] */
-/*     cont-stack: [... ... ... ... ... MMT] -> [... ... ... ... TODO TODO] */
-/*                                                                        */
-/*     expr-stack: [... ... ... DCT EXP TAB] -> [... ... ... ... ... *E*] */
-/*     cont-stack: [... ... ... ... ... MMT] -> [... ... ... ... ... ...] */
+/*     expr-stack: [... ... ... DCT EXP TAB] -> [MTB DCT TAB EXP *1* EXP] */
+/*     cont-stack: [... ... ... ... ... MMT] -> [... ... ... SMT INI EXP] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ MMT(_NIL_TYPE_)
  { _EXP_TYPE_ dct, exp, dim, siz, mtb, nbr, dat_tab;
@@ -600,7 +589,7 @@ static _NIL_TYPE_ MMT(_NIL_TYPE_)
    tag = _ag_get_TAG_(siz);
    dim = _ag_make_NBU_(max_siz);
 
-   printf("attempting to create a multidimensional table of dimension %u\n", max_siz);
+/*   printf("attempting to create a multidimensional table of dimension %u\n", max_siz);
    printf("siz tab has following sizes: [");
 
    for(i=1; i<=max_siz; ++i) {
@@ -611,7 +600,7 @@ static _NIL_TYPE_ MMT(_NIL_TYPE_)
 		   printf("-%u- ", _ag_get_TAG_(nbr));
    }
    printf("]\n");
-   (void)fflush(stdout);
+   (void)fflush(stdout);*/
 
 
    if (tag == _TAB_TAG_) {
@@ -653,61 +642,111 @@ static _NIL_TYPE_ MMT(_NIL_TYPE_)
      _error_(_SIZ_ERROR_); }
 
 /*------------------------------------------------------------------------*/
+/*  MRF - "multitable ref"                                                */
+/*     expr-stack: [... ... ... ... MTB TAB] -> [... ... ... ... ... EXP] */
+/*     cont-stack: [... ... ... ... ... MRF] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ MRF(_NIL_TYPE_)
+{ _EXP_TYPE_ usr_siz, mtb_siz, mtb, dim, idx, dat;
+  _UNS_TYPE_ ofs, i, j, s;
+  _SGN_TYPE_ nbr;
+  _stk_pop_EXP_(usr_siz);
+  _stk_peek_EXP_(mtb);
+
+  dim = _ag_get_MTB_DIM_(mtb);
+  mtb_siz = _ag_get_MTB_SIZ_(mtb);
+
+
+  if(_ag_get_NBU_(dim) == _ag_get_TAB_SIZ_(usr_siz)) {
+	  ofs = 0;
+	  for(i = 1; i<(_ag_get_NBU_(dim) + 1); ++i) {
+		  s = 1;
+		  for(j=i+1; j<(_ag_get_NBU_(dim) + 1); ++j) {
+			  idx = _ag_get_TAB_EXP_(mtb_siz, j);
+			  nbr = _ag_get_NBR_(idx);
+			  s = s*nbr;
+		  }
+		  idx = _ag_get_TAB_EXP_(usr_siz, i);
+		  nbr = _ag_get_NBR_(idx);
+		  if(nbr < 0)
+			  _error_(_IIX_ERROR_);
+		  else
+			  ofs += s*(nbr - 1);
+	  }
+	  ofs += 1;
+
+	  _stk_poke_EXP_(_ag_get_MTB_EXP_(mtb, ofs));
+	  _stk_zap_CNT_();
+  }
+  else
+	  _error_(_IIX_ERROR_);
+}
+
+/*------------------------------------------------------------------------*/
+/*  MTL                                                                   */
+/*     expr-stack: [... ... ... ... ... MTL] -> [... ... ... MTB TAB *1*] */
+/*     cont-stack: [... ... ... ... ... MTL] -> [... ... ... ... MRF EST] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ MTL(_NIL_TYPE_)
+{ _EXP_TYPE_ dct, siz, nam, mtb, mtl;
+  _stk_claim_();
+  _stk_peek_EXP_(mtl);
+  nam = _ag_get_MTL_NAM_(mtl);
+  siz = _ag_get_MTL_SIZ_(mtl);
+  _dct_locate_(nam, dct, _DCT_);
+  mtb = _ag_get_DCT_VAL_(dct);
+  _stk_poke_EXP_(mtb);
+  _stk_push_EXP_(siz);
+  _stk_push_EXP_(_ONE_);
+  _stk_poke_CNT_(MRF);
+  _stk_push_CNT_(EST);
+}
+
+/*------------------------------------------------------------------------*/
+/*  REF                                                                   */
+/*     expr-stack: [... ... ... ... TAB NBR] -> [... ... ... ... ... VAL] */
+/*     cont-stack: [... ... ... ... ... REF] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ REF(_NIL_TYPE_)
+ { _EXP_TYPE_ exp, nbr, tab;
+   _UNS_TYPE_ ctr, siz;
+   _TAG_TYPE_ tag;
+   _stk_pop_EXP_(nbr);
+   _stk_peek_EXP_(tab);
+   tag = _ag_get_TAG_(tab);
+   if (TAB_tab[tag])
+     { siz = _ag_get_TAB_SIZ_(tab);
+       tag = _ag_get_TAG_(nbr);
+       if (tag == _NBR_TAG_)
+         { ctr = _ag_get_NBU_(nbr);
+           if ((ctr > 0) && (ctr <= siz))
+             { exp = _ag_get_TAB_EXP_(tab, ctr);
+               _stk_poke_EXP_(exp);
+               _stk_zap_CNT_(); }
+           else
+             _error_(_RNG_ERROR_); }
+       else
+        _error_(_IIX_ERROR_); }
+   else 
+     _error_(_NAT_ERROR_); }
+
+
+
+
+/*------------------------------------------------------------------------*/
 /*  SMT  'store multidimensional table'                                    */
-/*     expr-stack: [... ... ... MTB TAB DCT] -> [... ... ... ... ... MTB] */
+/*     expr-stack: [... ... ... ... MTB TAB] -> [... ... ... ... ... MTB] */
 /*     cont-stack: [... ... ... ... ... SMT] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
 
 static _NIL_TYPE_ SMT(_NIL_TYPE_)
-{   _EXP_TYPE_ mtb, dct, tab;
-	_stk_pop_EXP_(dct);
+{   _EXP_TYPE_ mtb, tab;
 	_stk_pop_EXP_(tab);
 	_stk_peek_EXP_(mtb);
 
-	_ag_set_DCT_VAL_(dct, mtb);
+	_ag_set_DCT_VAL_(_DCT_, mtb);
 	_stk_zap_CNT_();
 }
-
-/*------------------------------------------------------------------------*/
-/*  EST  'evaluate size table'                                            */
-/*     expr-stack: [... ... ... ... TAB *1*] -> [... ... ... ... ... TAB] */
-/*     cont-stack: [... ... ... ... ... EST] -> [... ... ... ... ... ...] */
-/*																	      */
-/*     expr-stack: [... ... ... ... TAB UNS] -> [... ... ... TAB UNS EXP] */
-/*     cont-stack: [... ... ... ... ... EST] -> [... ... ... ... EXP STV] */
-/*------------------------------------------------------------------------*/
-static _NIL_TYPE_ EST(_NIL_TYPE_)
- { _EXP_TYPE_ siz_tab, nbr;
-   _UNS_TYPE_ ctr, siz_amt;
-   _TAG_TYPE_ tag;
-
-   _stk_pop_EXP_(nbr);
-   _stk_peek_EXP_(siz_tab);
-
-   ctr = _ag_get_NBU_(nbr);
-   siz_amt = _ag_get_TAB_SIZ_(siz_tab);
-
-   tag = _ag_get_TAG_(siz_tab);
-
-	if (tag == _TAB_TAG_) {
-		if(ctr <= siz_amt) {
-			printf("evaluating index %u in the sizes table\n", ctr);
-			(void)fflush(stdout);
-
-			_stk_push_EXP_(nbr);
-			_stk_push_EXP_(_ag_get_TAB_EXP_(siz_tab, ctr));
-			_stk_push_CNT_(SVT);
-			_stk_push_CNT_(EXP);
-		}
-		else {
-			printf("done evaluating indices.\n");
-			(void)fflush(stdout);
-			_stk_zap_CNT_();
-		}
-	}
-	else
-		_error_(_NAT_ERROR_);
- }
 
 /*------------------------------------------------------------------------*/
 /*  SVT  'store value in table'                                           */
@@ -904,68 +943,6 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_)
    _stk_poke_CNT_(REF);
    _stk_push_CNT_(EXP);
  }
-
-/*------------------------------------------------------------------------*/
-/*  MRF - "multitable ref"                                                */
-/*     expr-stack: [... ... ... ... MTB TAB] -> [... ... ... ... ... EXP] */
-/*     cont-stack: [... ... ... ... ... MRF] -> [... ... ... ... ... ...] */
-/*------------------------------------------------------------------------*/
-static _NIL_TYPE_ MRF(_NIL_TYPE_)
-{ _EXP_TYPE_ usr_siz, mtb_siz, mtb, dim, idx, dat;
-  _UNS_TYPE_ ofs, i, j, s;
-  _SGN_TYPE_ nbr;
-  _stk_pop_EXP_(usr_siz);
-  _stk_peek_EXP_(mtb);
-
-  dim = _ag_get_MTB_DIM_(mtb);
-  mtb_siz = _ag_get_MTB_SIZ_(mtb);
-
-
-  if(_ag_get_NBU_(dim) == _ag_get_TAB_SIZ_(usr_siz)) {
-	  ofs = 0;
-	  for(i = 1; i<(_ag_get_NBU_(dim) + 1); ++i) {
-		  s = 1;
-		  for(j=i+1; j<(_ag_get_NBU_(dim) + 1); ++j) {
-			  idx = _ag_get_TAB_EXP_(mtb_siz, j);
-			  nbr = _ag_get_NBR_(idx);
-			  s = s*nbr;
-		  }
-		  idx = _ag_get_TAB_EXP_(usr_siz, i);
-		  nbr = _ag_get_NBR_(idx);
-		  if(nbr < 0)
-			  _error_(_IIX_ERROR_);
-		  else
-			  ofs += s*(nbr - 1);
-	  }
-	  ofs += 1;
-
-	  _stk_poke_EXP_(_ag_get_MTB_EXP_(mtb, ofs));
-	  _stk_zap_CNT_();
-  }
-  else
-	  _error_(_IIX_ERROR_);
-}
-
-
-/*------------------------------------------------------------------------*/
-/*  MTL                                                                   */
-/*     expr-stack: [... ... ... ... ... MTL] -> [... ... ... MTB TAB *1*] */
-/*     cont-stack: [... ... ... ... ... MTL] -> [... ... ... ... MRF EST] */
-/*------------------------------------------------------------------------*/
-static _NIL_TYPE_ MTL(_NIL_TYPE_)
-{ _EXP_TYPE_ dct, siz, nam, mtb, mtl;
-  _stk_claim_();
-  _stk_peek_EXP_(mtl);
-  nam = _ag_get_MTL_NAM_(mtl);
-  siz = _ag_get_MTL_SIZ_(mtl);
-  _dct_locate_(nam, dct, _DCT_);
-  mtb = _ag_get_DCT_VAL_(dct);
-  _stk_poke_EXP_(mtb);
-  _stk_push_EXP_(siz);
-  _stk_push_EXP_(_ONE_);
-  _stk_poke_CNT_(MRF);
-  _stk_push_CNT_(EST);
-}
 
 /*------------------------------------------------------------------------*/
 /*  VAR                                                                   */
