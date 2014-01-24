@@ -261,6 +261,7 @@
       assign_multitabulation(Tbl, Exp):
         { nam: Tbl[MTL_NAM_idx];
           exp: get(nam, DCT);
+          siz_evl[size(Tbl[MTL_TAB_idx])] : -1;
           if(exp[TAG_idx] = MTB_tag,
              { Siz: Tbl[MTL_TAB_idx];
                siz: exp[MTB_SIZ_idx];
@@ -276,7 +277,7 @@
                                   idx_nbr: idx[NBR_VAL_idx];
                                   if(nbr > idx_nbr,
                                      error('index beyond size'),
-                                     Siz[i] := val)})},
+                                     siz_evl[i] := val)})},
                             error('invalid size for multitabulation')) }) );
                             
                `If we reach this point, this means the index is valid`
@@ -292,7 +293,7 @@
                          { idx: siz[j];
                            idx_nbr: idx[NBR_VAL_idx];
                            s:= s*idx_nbr});
-                     idx: Siz[i];
+                     idx: siz_evl[i];
                      idx_nbr: idx[NBR_VAL_idx];
                      ofs:= ofs+ (s * (idx_nbr - 1)) });
                ofs := ofs+1;

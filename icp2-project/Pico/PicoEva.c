@@ -444,6 +444,7 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_)
     	_ag_set_DCT_NAM_(dct, nam);
     	_stk_poke_EXP_(dct);
     	_stk_push_EXP_(exp);
+    	_stk_push_EXP_(_ag_make_TAB_(_ag_get_TAB_SIZ_(siz)));
     	_stk_push_EXP_(siz);
     	_stk_push_EXP_(_ONE_);
     	_stk_poke_CNT_(MMT);
@@ -454,14 +455,14 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_)
 
 /*------------------------------------------------------------------------*/
 /*  EST  'evaluate size table'                                            */
-/*     expr-stack: [... ... ... ... TAB *1*] -> [... ... ... ... ... TAB] */
+/*     expr-stack: [... ... ... TAB TAB *1*] -> [... ... ... ... ... TAB] */
 /*     cont-stack: [... ... ... ... ... EST] -> [... ... ... ... ... ...] */
 /*																	      */
-/*     expr-stack: [... ... ... ... TAB UNS] -> [... ... ... TAB UNS EXP] */
+/*     expr-stack: [... ... ... TAB TAB UNS] -> [... ... TAB TAB UNS EXP] */
 /*     cont-stack: [... ... ... ... ... EST] -> [... ... ... ... EXP STV] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ EST(_NIL_TYPE_)
- { _EXP_TYPE_ siz_tab, nbr;
+ { _EXP_TYPE_ siz_tab, evl_tab, nbr;
    _UNS_TYPE_ ctr, siz_amt;
    _TAG_TYPE_ tag;
 
@@ -486,6 +487,7 @@ static _NIL_TYPE_ EST(_NIL_TYPE_)
 		else {
 			//printf("done evaluating indices.\n");
 			//(void)fflush(stdout);
+			_stk_zap_EXP_(); // remove un-evaluated siz tab from stack, keeping the evaluated one on top
 			_stk_zap_CNT_();
 		}
 	}
@@ -688,14 +690,17 @@ static _NIL_TYPE_ MRF(_NIL_TYPE_)
 /*     cont-stack: [... ... ... ... ... MTL] -> [... ... ... ... MRF EST] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ MTL(_NIL_TYPE_)
-{ _EXP_TYPE_ dct, siz, nam, mtb, mtl;
+{ _EXP_TYPE_ dct, siz, nam, mtb, mtl, evl_tab;
   _stk_claim_();
   _stk_peek_EXP_(mtl);
   nam = _ag_get_MTL_NAM_(mtl);
   siz = _ag_get_MTL_SIZ_(mtl);
   _dct_locate_(nam, dct, _DCT_);
   mtb = _ag_get_DCT_VAL_(dct);
+
+  evl_tab = _ag_make_TAB_(_ag_get_TAB_SIZ_(siz));
   _stk_poke_EXP_(mtb);
+  _stk_push_EXP_(evl_tab);
   _stk_push_EXP_(siz);
   _stk_push_EXP_(_ONE_);
   _stk_poke_CNT_(MRF);
@@ -750,19 +755,21 @@ static _NIL_TYPE_ SMT(_NIL_TYPE_)
 
 /*------------------------------------------------------------------------*/
 /*  SVT  'store value in table'                                           */
-/*     expr-stack: [... ... ... TAB NBU EXP] -> [... ... ... ... TAB NBU] */
+/*     expr-stack: [... ... TAB TAB NBU EXP] -> [... ... ... TAB TAB NBU] */
 /*     cont-stack: [... ... ... ... ... SVT] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ SVT(_NIL_TYPE_) {
-	_EXP_TYPE_ exp, tab, uns;
+	_EXP_TYPE_ exp, tab, uns, evl_tab;
 	_UNS_TYPE_ idx;
 	_mem_claim_();
 	_stk_claim_();
 	_stk_pop_EXP_(exp);
 	_stk_pop_EXP_(uns);
-	_stk_peek_EXP_(tab);
+	_stk_pop_EXP_(tab);
+	_stk_peek_EXP_(evl_tab);
 	idx = _ag_get_NBU_(uns);
-	_ag_set_TAB_EXP_(tab, idx, exp);
+	_ag_set_TAB_EXP_(evl_tab, idx, exp);
+	_stk_push_EXP_(tab);
 	_stk_push_EXP_(_ag_succ_NBR_(uns));
 	_stk_zap_CNT_();
 }
@@ -869,6 +876,7 @@ static _NIL_TYPE_ SET(_NIL_TYPE_)
     	  mtb = _ag_get_DCT_VAL_(dct);
     	  _stk_poke_EXP_(mtb);
     	  _stk_push_EXP_(exp);
+    	  _stk_push_EXP_(_ag_make_TAB_(_ag_get_TAB_SIZ_(siz)));
     	  _stk_push_EXP_(siz);
     	  _stk_push_EXP_(_ONE_);
     	  _stk_poke_CNT_(AMT);
