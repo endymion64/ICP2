@@ -1,88 +1,83 @@
 {
-siz:5;
+Size:5;
 
-A: mtab(2, 5,5, 
+epsilon: 1e-6;
+
+row[Size]:void;
+
+column[Size]:void;
+
+select_pivot(A, i):
+{ save_R: i;
+  save_C: i;
+  ext: A[row[i],column[i]];
+  for(R:i, R:=R+1, R<Size+1,
+	for(C:i, C:=C+1, C<Size+1, if(abs(A[row[R],column[C]]) > abs(ext),
+		                          { ext:= A[row[R],column[C]];
+						            save_R:= R;
+						            save_C:= C},
+						          void)));
+  if(not(save_R = i),
+     { hold: row[i]; 
+	   row[i]:= row[save_R]; 
+	   row[save_R]:= hold },
+	 void);
+  if(not(save_C = i),
+	 { hold: column[i]; 
+	   column[i]:= column[save_C]; 
+	   column[save_C]:= hold },
+	 void);
+  ext};
+
+Gauss(A, b, x):
+{ first: 1;
+  last: Size;
+  pivot: void;
+  res: false;
+  for(i:first, i:=i+1, i<Size+1,
+      { row[i]:= i;
+		column[i]:= i });
+		
+  for(i:first, i:=i+1, i<last,
+      { pivot:= select_pivot(A,i);
+        if(abs(pivot) < epsilon, 
+           res,
+		   void);
+        coefficient_b: b[row[i]] / pivot;
+        for (j:i+1, j:=j+1,j<Size+1, 
+             { coefficient_A: A[row[i],column[j]] / pivot;
+			   for(k:i+1, k:=k+1, k<Size+1, 
+                   A[row[k], column[j]]:= A[row[k], column[j]] - (A[row[k],column[i]] * coefficient_A));
+               A[row[i],column[j]]:= coefficient_A;
+               b[row[j]]:= b[row[j]] - (A[row[j],column[i]] * coefficient_A )});
+        b[row[i]] = coefficient_b });
+    
+  if(abs(pivot) < epsilon, res, void);
+  
+  b[row[last]]:= b[row[last]] / A[row[last], column[last]];
+
+  for(i:last-1, i:= i-1, i>first,
+      for(j:last,j:=j-1, j>i, 
+          b[row[j]]:=b[row[j]] - (b[row[i]] * A[row[j],column[i]])));
+            
+  for(i:first,i:=i+1, i<Size+1, 
+      x[column[i]]:=b[row[i]]);
+       
+  res:=true
+};
+
+A: mtab(2, Size, Size, 
         0, 0, 0, 0, 1,
         0, 0, 0, 1, 0,
         0, 0, 1, 0, 0,
         0, 1, 0, 0, 0,
         1, 0, 0, 0, 0);
 
-
 b: tab(1,2,3,4,5);
 
-x[siz]:void;
-
-select_pivot(A, i):
-{   R: void;
-	C: void;
-	siz_tab: size(mtb);
-	siz: siz_tab[1]+1;
-	save_R: i;
-	save_C: i;
-	hold: void;
-	ext: A[row[i],col[i]];
-	row[siz]: void;
-	col[siz]: void;
-	for(R:i, R:=R+1, R<siz,
-		for(C:i, C:=C+1, C<siz, if(abs(A[row[R],col[C]]) > abs(ext),
-		                           { ext:= A[row[R],col[C]];
-						             save_R:= R;
-						             save_C:= C },
-						            void)));
-	if(not(save_R = i),
-	   { hold = row[i]; 
-	     row[i]:= row[save_R]; 
-	     row[save_R] = hold},
-	   void);
-	if(not(save_C = i),
-	   { hold = col[i]; 
-	     col[i]:= col[save_C]; 
-	     col[save_C] = hold },
-	   void);
-	ext};
-
-Gauss(A, b, x):
-{ first: 0;
-  epsilon: 1e-6;
-  siz_tab: size(A);
-  siz: siz_tab[1]+1;
-  last: siz-1;
-  row[siz]: void;
-  col[siz]: void;
-  i:void;
-  j:void;
-  k:void;
-  res: false;
-  call(
-   { for(i:first, i:=i+1, i<siz,
-         { row[i]:=i;
-		   col[i]:=i });
-     for(i:first, i:=i+1, i<last,
-         { pivot: select_pivot(A,i);
-           if(abs(pivot) < epsilon, 
-              continue(cont, res),
-		      void);
-           coefficient_b: b[row[i]] / pivot;
-           for (j:i+1, j:=j+1,j<siz, 
-                { coefficient_A: A[row[i],col[j]] / pivot;
-			      for(k:i+1, k:=k+1, k<siz, 
-                      A[row[k], col[j]]:= A[row[k], col[j]] - A[row[k],col[i]] * coefficient_A);
-                  A[row[i],col[j]]:= coefficient_A;
-                  b[row[j]]:= b[row[j]] - A[row[j],col[i]] * coefficient_A });
-           b[row[i]] = coefficient_b });
-     if(abs(pivot) < epsilon, continue(cont, res), void);
-     b[row[last]]:= b[row[last]] / A[row[last], col[last]];
-     for (i:last-1, i:= i-1, i>first,
-          for (j:last,j:=j-1, j>i, 
-               b[row[j]]:=b[row[j]] - b[row[i]] * A[row[j],col[i]]));
-     for (i:first,i:=i+1, i<siz, 
-          x[col[i]]:=b[row[i]]);
-     res:=true})
-};
+x[Size]:void;
 
 if(Gauss(A,b,x),
    x,
    display("failed"))
 }
-
