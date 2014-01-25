@@ -2317,7 +2317,7 @@ static _NIL_TYPE_ TBX(_NIL_TYPE_)
 
 /*------------------------------------------------------------------------*/
 /*  MTB                                                                   */
-/*     expr-stack: [... ... ... ... ... ARG] -> [... ... ARG TAB NBR EVL] */
+/*     expr-stack: [... ... ... ... ... ARG] -> [... ... TAB TAB NBR EVL] */
 /*     cont-stack: [... ... ... ... ... MTB] -> [... ... ... ... MTX EVL] */
 /*                                                                        */
 /*     expr-stack: [... ... ... ... ... ARG] -> [... ... ... ... ... EMP] */
@@ -2337,6 +2337,7 @@ static _NIL_TYPE_ MTB(_NIL_TYPE_) //NOTE: almost exact copy of TAB
    _mem_claim_SIZ_(siz);
    tab = _ag_make_TAB_(siz);
    _stk_peek_EXP_(arg);
+
    _stk_push_EXP_(tab);
    _stk_push_EXP_(_ONE_);
    exp = _ag_get_TAB_EXP_(arg, 1);
@@ -2386,7 +2387,7 @@ static _NIL_TYPE_ MTX(_NIL_TYPE_) //NOTE: almost exact copy of TBX
 static _NIL_TYPE_ MTP(_NIL_TYPE_)
  { _EXP_TYPE_ arg, dim, mtb, siz_tab, dat_tab, val;
    _TAG_TYPE_ dim_tag;
-   _UNS_TYPE_ ctr, siz;
+   _UNS_TYPE_ ctr, siz, dat_siz, for_ctr;
    _SGN_TYPE_ nbr, skp;
    _stk_claim_();
    _mem_claim_();
@@ -2395,19 +2396,30 @@ static _NIL_TYPE_ MTP(_NIL_TYPE_)
    dim_tag = _ag_get_TAG_(dim);
   if(dim_tag == _NBR_TAG_){
 	  nbr = _ag_get_NBR_(dim);
+
 	  if(nbr<=0)
 		  _error_(_IAG_ERROR_);
 	  else if(nbr==1){
 		  // create table
-		  // TODO: check whether the second argument is actually a number and that you gave enough data according to that argument
 		  siz = _ag_get_TAB_SIZ_(arg);
 		  siz -= 2;
+
+		  if(siz != _ag_get_NBR_(_ag_get_TAB_EXP_(arg, 2))) // Check if the provided index is equal to the given amount of tab-data
+			  _error_(_IAG_ERROR_);
+
 		  _mem_claim_SIZ_(siz);
 		  mtb = _ag_make_TAB_(siz);
 		  for(ctr = _ag_get_NBU_(_ONE_); ctr < siz+1; ++ctr)
 			  _ag_set_TAB_EXP_(mtb,ctr,_ag_get_TAB_EXP_(arg,ctr+2));
 	  }
 	  else{
+		  dat_siz = 1;
+		  for(for_ctr = 1; for_ctr<=nbr; for_ctr++) {
+		  	  dat_siz *= _ag_get_NBR_(_ag_get_TAB_EXP_(arg, 1+for_ctr));
+		  }
+		  if(dat_siz != _ag_get_TAB_SIZ_(arg) - (1+nbr))
+			  _error_(_IAG_ERROR_);
+
 		  // Initialize size table
 		  _mem_claim_SIZ_(nbr);
 		  siz_tab = _ag_make_TAB_(nbr);

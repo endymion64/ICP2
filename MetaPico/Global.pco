@@ -233,6 +233,23 @@
                     
     tab_fun@Arg:
       { display(Arg) };
+
+    mtab_fun@Arg:
+    { Arg := reify_TAB(Arg);
+      dim: reify_NBR(Arg[1]);
+      siz[dim]: void;
+      dat_siz: 1;
+      
+      for(i:1, i:=i+1, i<1+dim,
+          { idx: reify_NBR(Arg[1+i]); `check if it's a valid number`
+            dat_siz:= dat_siz * idx;
+            if(idx<0, error('invalid dimension'), siz[i]:=deify_NBR(idx)) });
+
+       if(not(dat_siz = size(Arg) - (1+dim)), error('not enough elements provided as data for mtab'),
+          { dat_tab[dat_siz]: void;
+            for(i:1, i:=i+1, i<1+dat_siz, dat_tab[i]:= Arg[1+dim+i]);
+            if(dim = 1, deify_TAB(dat_tab),
+               MTB(deify_NBR(dim), siz, dat_tab)) }) };
       
     
     nat_tab: ['+', '-', '*', '/', '//', '\\', '^', 
@@ -242,7 +259,7 @@
               'exp', 'log', 'explode', 'implode', 
               'is_number', 'is_fraction', 'is_text', 
               'is_function', 'is_table', 'is_void', 
-              'size', 'display','accept', 'dimension', 'tab'];
+              'size', 'display','accept', 'dimension', 'tab', 'mtab'];
 
     fun_tab: [add_fun,
               sub_fun,
@@ -280,7 +297,8 @@
               display_fun,
               accept_fun,
               dim_fun,
-              tab_fun];
+              tab_fun,
+              mtab_fun];
 
       make_global():=
         {global: make_dict();
