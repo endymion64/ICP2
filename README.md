@@ -1,8 +1,8 @@
-ICP2
-====
+#Multidimensional tables in Pico
 
-Project 2013/2014 voor ICP2: Multidimensionale tabellen
+Project for the course Interpreatation of Computer Programs 2 (ICP2) in the academic year 2013-2014
 
-Groepswerk i.s.m. Sam Van Den Vonder.
+Goal: extend the Pico Interpreter in order to support multidimensional tables in the Pico programming language
 
-Doel van het project: de programmeertaal Pico, ontwikkeld door Prof. Dr. Theo D'Hondt, uit te breiden met de mogelijkheid om multidimensionale tabellen (analoog aan arrays) te gebruiken . Deze feature dient zowel in de metacirculaire interpreter als de C-implementatie van Pico toegevoegd te worden.
+There is a meta-circular interpreter and an interpreter written in C
+This project was established in association with Sam Van Den Vonder.
