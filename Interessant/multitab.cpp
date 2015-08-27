@@ -2,7 +2,7 @@
 // Name        : multitab.cpp
 // Author      : Youri Coppens
 // Version     :
-// Copyright   : fuck off, my code!!
+// Copyright   : 
 // Description : Multitable, raw implementation for brainstorming
 //============================================================================
 
