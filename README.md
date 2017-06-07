@@ -1,4 +1,4 @@
-#Multidimensional tables in Pico
+# Multidimensional tables in Pico
 
 Project for the course Interpreatation of Computer Programs 2 (ICP2) in the academic year 2013-2014
 
